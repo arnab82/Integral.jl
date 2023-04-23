@@ -5,7 +5,12 @@ using LinearAlgebra: norm, eigen
 using StaticArrays
 const ang2bohr = 1.8897261246257702
 
-include("./../src/attributes.jl")
+function fact2(n::Float64)
+    if n == 0
+        return 1
+    end
+    return prod(collect(range(1,n,2)))
+end
 
 function E(i, j, t, Qx, a, b)
     """
@@ -96,11 +101,11 @@ struct BasisFunction
     norms::Array{Float64}
 end
 
-function BasisFunction(; origin=[0.0, 0.0, 0.0], shell=(0, 0, 0), exps=[], coefs=[], num_exps=nothing)
-    if num_exps == nothing
+function BasisFunction(; origin=[0.0, 0.0, 0.0], shell=(0, 0, 0), exps=[], coefs=[], num_exps=0)
+    if num_exps == 0
         num_exps = length(exps)
     end
-    bf = BasisFunction(origin, shell, exps, coefs, num_exps, nothing)
+    bf = BasisFunction(origin, shell, exps, coefs, num_exps, [0.0])
     normalize_basis!(bf)
     return bf
 end
@@ -110,11 +115,15 @@ function normalize_basis!(bf::BasisFunction)
     Routine to normalize the basis functions, in case they do not integrate to unity.
     """
     l, m, n = bf.shell
+    println(l,m,n)
     L = l + m + n
+    println(L)
+    println(bf.exps)
+    println(fact2(2*l-1))
+
     # norm is an array of length equal to number primitives
     # normalize primitives first (PGBFs)
-    bf.norm = sqrt.(2.0^(2*(l + m + n) + 1.5) .* bf.exps.^(l + m + n + 1.5) /
-                   (fact2(2*l - 1) * fact2(2*m - 1) * fact2(2*n - 1) * pi^1.5))
+    bf.norm = sqrt.(2.0^(2*(l + m + n) + 1.5) .* bf.exps.^(l + m + n + 1.5) /(fact2(2*l - 1) * fact2(2*m - 1) * fact2(2*n - 1) * pi^1.5))
 
     # now normalize the contracted basis functions (CGBFs)
     # Eq. 1.44 of Valeev integral whitepaper

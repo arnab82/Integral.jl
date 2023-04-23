@@ -1,5 +1,5 @@
 
-include("./../src/Intgl.jl")
+include(".//Intgl.jl")
 function Basis_attributes_finder(atom)
 	basis_set_STO3G = Dict("H" =>  [[[3.425250914, 0.6239137298, 0.168855404], [0.1543289673, 0.5353281423, 0.4446345422], [0, 0, 0]]], 
 		"He" =>  [[[6.362421394, 1.158922999, 0.3136497915], [0.1543289673, 0.5353281423, 0.4446345422], (0, 0, 0)]],
@@ -187,12 +187,7 @@ using LinearAlgebra
 
 
 
-function fact2(n::Int64)
-    if n == 0
-        return 1
-    end
-    return prod(collect(range(1,n,2)))
-end
+
 
 
 #function orbital_config(atoms, geom, basis_set)
