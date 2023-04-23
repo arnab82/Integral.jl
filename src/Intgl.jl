@@ -5,12 +5,6 @@ using LinearAlgebra: norm, eigen
 using StaticArrays
 const ang2bohr = 1.8897261246257702
 
-function fact2(n::Float64)
-    if n == 0
-        return 1
-    end
-    return prod(collect(range(1,n,2)))
-end
 
 function E(i, j, t, Qx, a, b)
     """
