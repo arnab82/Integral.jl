@@ -4,8 +4,10 @@ using Combinatorics: doublefactorial
 using LinearAlgebra: norm, eigen
 using StaticArrays
 const ang2bohr = 1.8897261246257702
-
-
+using PyCall
+sp=pyimport("scipy.special")
+fact2=sp.factorial2
+println(fact2(-1))
 function E(i, j, t, Qx, a, b)
     """
     Recursive definition of Hermite Gaussian coefficients.
@@ -76,7 +78,7 @@ function S(a, b)
     end
     return s
 end
-struct BasisFunction
+mutable struct BasisFunction
     """
     A struct that contains all our basis function data
     Attributes:
@@ -109,24 +111,29 @@ function normalize_basis!(bf::BasisFunction)
     Routine to normalize the basis functions, in case they do not integrate to unity.
     """
     l, m, n = bf.shell
+    l=convert(Int64,l)
+    m=convert(Int64,m)
+    n=convert(Int64,n)
     println(l,m,n)
     L = l + m + n
-    println(L)
-    println(bf.exps)
-    println(fact2(2*l-1))
+    #println(L)
+    #println(bf.exps)
+    #println(fact2(2*l-1))
+    #println((2.0^(2*(l + m + n) + 1.5)).*bf.exps.^((l + m + n + 1.5) ))
 
+    #println((fact2(2*l - 1) .* fact2(2*m - 1) .* fact2(2*n - 1) .* pi^1.5))
     # norm is an array of length equal to number primitives
     # normalize primitives first (PGBFs)
-    bf.norm = sqrt.(2.0^(2*(l + m + n) + 1.5) .* bf.exps.^(l + m + n + 1.5) /(fact2(2*l - 1) * fact2(2*m - 1) * fact2(2*n - 1) * pi^1.5))
+    bf.norms = sqrt.(2.0^(2*(l + m + n) + 1.5) .* bf.exps.^(l + m + n + 1.5) /(fact2(2*l - 1) .* fact2(2*m - 1) .* fact2(2*n - 1) .* pi^1.5))
 
     # now normalize the contracted basis functions (CGBFs)
     # Eq. 1.44 of Valeev integral whitepaper
-    prefactor = (pi^1.5 * fact2(2*l - 1) * fact2(2*m - 1) * fact2(2*n - 1)) / 2.0^L
+    prefactor = (pi^1.5 .* fact2(2*l - 1) .* fact2(2*m - 1) .* fact2(2*n - 1)) / 2.0^L
 
     N = 0.0
     for ia in 1:bf.num_exps
         for ib in 1:bf.num_exps
-            N += bf.norm[ia] * bf.norm[ib] * bf.coefs[ia] * bf.coefs[ib] /
+            N += bf.norms[ia] * bf.norms[ib] * bf.coefs[ia] * bf.coefs[ib] /
                  (bf.exps[ia] + bf.exps[ib])^(L + 1.5)
         end
     end
@@ -134,6 +141,7 @@ function normalize_basis!(bf::BasisFunction)
     N *= prefactor
     N = 1 / sqrt(N)
     bf.coefs .*= N
+    return N
 end
 
 function kinetic(a, lmn1, A, b, lmn2, B)

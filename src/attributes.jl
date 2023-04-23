@@ -187,45 +187,59 @@ using LinearAlgebra
 
 
 
-
-
-
-#function orbital_config(atoms, geom, basis_set)
-    attributes = []
-	basis_set="sto3g"
-	atoms=["H","O"]
-	geom=[[0,0,0],[1,1,1]]
-	println(lastindex(atoms))
-for i in 1:lastindex(atoms)
-    if basis_set == "sto3g"
-        temp_attri = Basis_attributes_finder(atoms[i])
-    elseif basis_set == "dzp"
-        temp_attri = Basis_attributes_finder_DZP(atoms[i])
-    elseif basis_set == "cc-pvdz"
-        temp_attri = Basis_attributes_finder_cc_pVDZ(atoms[i])
-    end
-
-    for j in 1:lastindex(temp_attri)
-        push!(temp_attri[j], geom[i])
-    end
-
-    push!(attributes, temp_attri)
-end
-println(attributes)
-println(size(attributes[1][1]))
-orbital_objects = []
-
-for i in 1:lastindex(attributes)
-	norms=BasisFunction(attributes[i][1][4], attributes[i][1][3], attributes[i][1][1], attributes[i][1][2],size(attributes[i][1][1])[1],[0.0])
-	normalize_basis!(norms)
-    push!(orbital_objects, BasisFunction(attributes[i][1][4], attributes[i][1][3], attributes[i][1][1], attributes[i][1][2],size(attributes[i][1][1])[1],norms))
-end
-
-b=sort_attri(orbital_objects)
-println(b)
-
-
 function sort_attri(orbital_objects)
+    exps_ = Vector{Float64}[]
+    coefs_ = Vector{Float64}[]
+    origins = []
+    shells = []
+    norms = Vector{Float64}[]
+    for obj in orbital_objects
+        E = Float64.(obj.exps)
+        C = Float64.(obj.coefs)
+        N = Float64.(obj.norms)
+        push!(exps_, E)
+        push!(coefs_, C)
+        push!(origins, (obj.origin))
+        push!(shells, (obj.shell))
+        push!(norms, N)
+    end
+    return exps_, coefs_, origins, shells, norms
+end
+
+
+function orbital_config(atoms, geom, basis_set)
+    attributes = []
+	#println(lastindex(atoms))
+	for i in 1:lastindex(atoms)
+		if basis_set == "sto3g"
+			temp_attri = Basis_attributes_finder(atoms[i])
+		elseif basis_set == "dzp"
+			temp_attri = Basis_attributes_finder_DZP(atoms[i])
+		elseif basis_set == "cc-pvdz"
+			temp_attri = Basis_attributes_finder_cc_pVDZ(atoms[i])
+		end
+
+		for j in 1:lastindex(temp_attri)
+			push!(temp_attri[j], geom[i])
+		end
+
+		push!(attributes, temp_attri)
+	end
+	println(attributes)
+	println(size(attributes[2][1]))
+	orbital_objects = [] 
+	for i in 1:lastindex(attributes)
+		for j in 1:lastindex(attributes[i])
+			norms=BasisFunction(attributes[i][j][4], attributes[i][j][3], attributes[i][j][1], attributes[i][j][2],size(attributes[i][j][1])[1],[0.0])
+			norms=normalize_basis!(norms)
+			push!(orbital_objects, BasisFunction(attributes[i][j][4], attributes[i][j][3], attributes[i][j][1], attributes[i][j][2],size(attributes[i][j][1])[1],[norms]))
+		end
+	end
+	display(orbital_objects)
+	return sort_attri(orbital_objects)
+end
+
+"""function sort_attri(orbital_objects)
     exps_ = []
     coefs_ = []
     origins = []
@@ -234,7 +248,7 @@ function sort_attri(orbital_objects)
     for i in 1:lastindex(orbital_objects)
         E = Float64.(orbital_objects[i].exps)
         C = Float64.(orbital_objects[i].coefs)
-        N = Float64.(orbital_objects[i].norm)
+        N = Float64.(orbital_objects[i].norms)
         push!(exps_, E)
         push!(coefs_, C)
         push!(origins, orbital_objects[i].origin)
@@ -244,3 +258,9 @@ function sort_attri(orbital_objects)
 
     return exps_, coefs_, Float64.(origins), Int.(shells), norms
 end
+"""
+
+basis_set="sto3g"
+atoms=["H","H","O"]
+geom=[[-1,1,0],[1,1,0],[0,0,0]]
+exp,coeff,origins,shells,norms=orbital_config(atoms,geom,basis_set)
