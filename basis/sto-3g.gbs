@@ -1,7 +1,7 @@
 spherical
 
 !
-! STO-3G EMSL Basis Set Exchange Library 3/17/14 9:46 AM
+! STO-3G EMSL Basis Set Exchange Library 
 ! Elements References
 ! -------- ----------
 ! H - Ne: W.J. Hehre, R.F. Stewart and J.A. Pople, J. Chem. Phys. 2657 (1969).
@@ -12,6 +12,10 @@ spherical
 ! Sc - Zn: W.J. Pietro and W.J. Hehre, J. Comp. Chem. 4, 241 (1983) + Gaussian.
 ! Y - Cd: W.J. Pietro and W.J. Hehre, J. Comp. Chem. 4, 241 (1983). + Gaussian
 !
+
+
+
+
 
 
 ****
@@ -69,7 +73,7 @@ SP 3 1.00
 ****
 N 0
 S 3 1.00
-     99.1061690 0.15432897
+      99.1061690 0.15432897
      18.0523120 0.53532814
       4.8856602 0.44463454
 SP 3 1.00
@@ -1108,7 +1112,4 @@ D 3 1.00
       7.295991196 0.1250662138
       2.841021154 0.6686785577
       1.250624506 0.3052468245
-****
-
-
-
+*****

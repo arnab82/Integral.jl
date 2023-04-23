@@ -1,7 +1,7 @@
 include("./../Intgl.jl")
 include("./../basis.jl")
 
-function overlap(a::Int64, lmn1::Tuple{Int64,Int64,Int64}, A::Vector{Float64}, b::Int64, lmn2::Tuple{Int64,Int64,Int64}, B::Vector{Float64})::Float64
+function overlap(a::Int64, lmn1::Tuple{Int64,Int64,Int64}, A::Vector{Float64}, b::Int64, lmn2::Tuple{Int64,Int64,Int64}, B::Vector{Float64})
     l1, m1, n1 = lmn1
     l2, m2, n2 = lmn2
     S1 = E(l1, l2, 0, A[1] - B[1], a, b)
@@ -11,7 +11,7 @@ function overlap(a::Int64, lmn1::Tuple{Int64,Int64,Int64}, A::Vector{Float64}, b
 end
 
 
-function S(a::Basis, b::Basis)::Float64
+function S(a::Basis, b::Basis)
     s = 0.0
     for ia in eachindex(a.coefs)
         for ib in eachindex(b.coefs)

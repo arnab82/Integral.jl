@@ -11,21 +11,12 @@ cartesian
 ! D.J. DeFrees and J.A. Pople, J. Chem. Phys. 77, 3654 (1982)
 ! K  - Zn: V. Rassolov, J.A. Pople, M. Ratner and T.L. Windus, J. Chem. Phys.
 ! 109, 1223 (1998)
-! Note: He and Ne are unpublished basis sets taken from the Gaussian
-! program
-! 
-!
+! Note: He and Ne are unpublished basis sets taken from the Gaussian program
 !  Pople-style Diffuse  EMSL  Basis Set Exchange Library   8/18/10 12:32 AM
 ! Elements                             Reference
 ! --------                             ----------
-! H, Li-Cl: T. Clark, J. Chandrasekhar,  G.W. Spitznagel, P.V.R. Schleyer, 
-!           J. Comp. Chem. 4, 294 (1983).
-!   
-!
+! H, Li-Cl: T. Clark, J. Chandrasekhar,  G.W. Spitznagel, P.V.R. Schleyer,            J. Comp. Chem. 4, 294 (1983)
 ! merged from 6-31g.gbs and diffuse-pople-p.gbs at Thu, 14:40 Aug 19, 2010
-!
-
-
 
 ****
 H     0

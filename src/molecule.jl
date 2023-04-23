@@ -2,20 +2,17 @@
 using LinearAlgebra
 using DelimitedFiles
 using LinearAlgebra
-using Base.Iterators: product
-using StatsBase: hist
-struct Atom
-    charge::Float64
-    origin::Vector{Float64}
+#using Base.Iterators: product
+#using StatsBase
+
+mutable struct my_Atom
+    mass_number::Int64
     mass::Float64
-
+    symbol::String
+    xyz::Array{Float64,1}
 end
 
-function Atom(charge::Float64, mass::Float64, origin::Vector{Float64}=[0.0, 0.0, 0.0])
-    return Atom(charge, origin, mass)
-end
-
-struct Basis
+struct Basis_int
     origin::Array{Float64,1}
     momentum::Array{Int64,1}
     nprims::Int64
@@ -24,13 +21,13 @@ struct Basis
 end
 
 struct Molecule
-    atoms::Array{Atom,1}
+    atoms::Array{my_Atom,1}
     charge::Int64
     multiplicity::Int64
     nelec::Int64
     nocc::Int64
     basis_data::Dict{Int64,Array{Tuple{Tuple{Char,Int64,Int64},Array{Tuple{Float64,Float64},1}},1}}
-    bfs::Array{Basis,1}
+    bfs::Array{Basis_int,1}
     nbasis::Int64
     center_of_charge::Array{Float64,1}
     is_built::Bool
@@ -40,8 +37,10 @@ struct Molecule
     function Molecule(geometry::String, basis::String="sto-3g")
         # geometry is now specified in input file
         charge, multiplicity, atomlist = read_molecule(geometry)
+        println(charge)
+        println(atomlist)
         new(charge, multiplicity, atomlist, sum([atom.charge for atom in atomlist])-charge, 
-            (sum([atom.charge for atom in atomlist])-charge)÷2, false, geometry, getBasis(joinpath(dirname(@__FILE__), "basis", lowercase(basis)*".gbs")), nothing)
+            (sum([atom.charge for atom in atomlist])-charge)÷2, false, geometry, getBasis(joinpath(dirname(@__FILE__),lowercase(basis)*".gbs")), nothing)
         formBasis!(this)
     end
 end
@@ -60,7 +59,7 @@ function formBasis( ::Molecule )
             exps = [e for (e,c) in prims]
             coefs = [c for (e,c) in prims]
             for shell in momentum2shell(momentum)
-                push!(bfs, Basis(atom.origin, shell, length(exps), exps, coefs))
+                push!(bfs, Basis_int(atom.origin, shell, length(exps), exps, coefs))
             end
         end
     end
@@ -106,7 +105,7 @@ end
 function sym2num(sym)
     """Routine that converts atomic symbol to atomic number"""
     symbol = [
-        "X","H","He",
+        "H","He",
         "Li","Be","B","C","N","O","F","Ne",
         "Na","Mg","Al","Si","P","S","Cl","Ar",
         "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe",
@@ -119,7 +118,25 @@ function sym2num(sym)
         "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu",
         "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg",
         "Tl","Pb","Bi","Po","At","Rn"]
-    return findfirst(x -> x == string(sym), symbol) - 1
+    return findfirst(x -> x == string(sym), symbol)
+end
+function symbol_name(sym)
+    """Routine that converts atomic symbol to atomic number"""
+    symbol = [
+        "H","He",
+        "Li","Be","B","C","N","O","F","Ne",
+        "Na","Mg","Al","Si","P","S","Cl","Ar",
+        "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe",
+        "Co", "Ni", "Cu", "Zn",
+        "Ga", "Ge", "As", "Se", "Br", "Kr",
+        "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru",
+        "Rh", "Pd", "Ag", "Cd",
+        "In", "Sn", "Sb", "Te", "I", "Xe",
+        "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm",  "Eu",
+        "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu",
+        "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg",
+        "Tl","Pb","Bi","Po","At","Rn"]
+    return symbol[sym]
 end
 function getBasis(self, filename)
     """
@@ -202,39 +219,48 @@ end
 
 function read_molecule(geometry::String)
     # atomic masses (isotop avg)
-    masses = [0.0,1.008,4.003,6.941,9.012,10.812,12.011,14.007,5.999,
-    18.998,20.180,22.990,24.305,26.982,28.086,30.974,32.066,
-    35.453,39.948]
+    masses = [1.008,4.003,6.941,9.012,10.812,12.011,14.007,5.999,
+        18.998,20.180,22.990,24.305,26.982,28.086,30.974,32.066,
+        35.453,39.948]
     f = split(geometry, '\n')
-    # remove any empty lines
-    f = filter(x -> !isempty(x), f)
-    # First line is charge and multiplicity
+        # remove any empty lines
+    f = filter(x -> !isempty(x), f)            
     atomlist = []
     for (line_number, line) in enumerate(f)
         if line_number == 1
             @assert length(split(line)) == 2
             charge = parse(Int, split(line)[1])
             multiplicity = parse(Int, split(line)[2])
+            #println(charge)
+            #println(multiplicity)
         else 
             if length(split(line)) == 0
                 break
             end
             @assert length(split(line)) == 4
             sym = sym2num(split(line)[1])
+            name=symbol_name(sym)
+            println(name)
             mass = masses[sym]
+            println(sym)
+            println(mass)
             # Convert Angstrom to Bohr (au)
             x   = parse(Float64, split(line)[2])/0.52917721092
             y   = parse(Float64, split(line)[3])/0.52917721092
             z   = parse(Float64, split(line)[4])/0.52917721092
+            #println([x,y,z])
             # Convert amu to atomic units
-            mass *= 1822.8885 
-            atom = Atom(charge=sym,mass=mass,origin=[x,y,z])
+            mass *= 1822.8885
+            atom = my_Atom(sym,mass,name,[x,y,z])
+            #println(atom)
             push!(atomlist, atom)
+            #println(atomlist)
         end
     end
-
-    return charge, multiplicity, atomlist
+    #println(atomlist)
+    return  0,1,atomlist
 end
+
 function one_electron_integrals(obj)
     """
     Routine to set up and compute one-electron integrals
