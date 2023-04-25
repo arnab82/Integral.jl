@@ -11,6 +11,74 @@ mutable struct my_Atom
     symbol::String
     xyz::Array{Float64,1}
 end
+mutable struct BasisFunction
+    """
+    A struct that contains all our basis function data
+    Attributes:
+    origin: array/list containing the coordinates of the Gaussian origin
+    shell: tuple of angular momentum
+    exps: list of primitive Gaussian exponents
+    coefs: list of primitive Gaussian coefficients
+    num_exps: number of primitive Gaussian exponents
+    norm: list of normalization factors for Gaussian primitives
+    """
+    origin::Array{Float64}
+    shell::Array{Float64}
+    exps::Array{Float64}
+    coefs::Array{Float64}
+    num_exps::Int64
+    norms::Array{Float64}
+end
+
+function BasisFunction(; origin=[0.0, 0.0, 0.0], shell=(0, 0, 0), exps=[], coefs=[], num_exps=0)
+    if num_exps == 0
+        num_exps = length(exps)
+    end
+    bf = BasisFunction(origin, shell, exps, coefs, num_exps, [0.0])
+    normalize_basis!(bf)
+    return bf
+end
+
+function normalize_basis!(bf::BasisFunction)
+    """
+    Routine to normalize the basis functions, in case they do not integrate to unity.
+    """
+    l, m, n = bf.shell
+    l=convert(Int64,l)
+    m=convert(Int64,m)
+    n=convert(Int64,n)
+    println(l,m,n)
+    L = l + m + n
+    #println(L)
+    #println(bf.exps)
+    #println(fact2(2*l-1))
+    #println((2.0^(2*(l + m + n) + 1.5)).*bf.exps.^((l + m + n + 1.5) ))
+
+    #println((fact2(2*l - 1) .* fact2(2*m - 1) .* fact2(2*n - 1) .* pi^1.5))
+    # norm is an array of length equal to number primitives
+    # normalize primitives first (PGBFs)
+    bf.norms = sqrt.(2.0^(2*(l + m + n) + 1.5) .* bf.exps.^(l + m + n + 1.5) /(fact2(2*l - 1) .* fact2(2*m - 1) .* fact2(2*n - 1) .* pi^1.5))
+
+    # now normalize the contracted basis functions (CGBFs)
+    # Eq. 1.44 of Valeev integral whitepaper
+    prefactor = (pi^1.5 .* fact2(2*l - 1) .* fact2(2*m - 1) .* fact2(2*n - 1)) / 2.0^L
+
+    N = 0.0
+    for ia in 1:bf.num_exps
+        for ib in 1:bf.num_exps
+            N += bf.norms[ia] * bf.norms[ib] * bf.coefs[ia] * bf.coefs[ib] /
+                 (bf.exps[ia] + bf.exps[ib])^(L + 1.5)
+        end
+    end
+
+    N *= prefactor
+    N = 1 / sqrt(N)
+    bf.coefs .*= N
+    """for ia in 1:num_exps
+        bf.coefs[ia]*= N
+    end"""
+    return N,bf.norms
+end
 
 struct Basis_int
     origin::Array{Float64,1}

@@ -7,44 +7,53 @@ const ang2bohr = 1.8897261246257702
 using PyCall
 sp=pyimport("scipy.special")
 fact2=sp.factorial2
-println(fact2(-1))
-function E(i, j, t, Qx, a, b)
+#println(fact2(-1))
+function E(i::Float64, j::Float64, t::Int64, Qx::Float64, a::Float64, b::Float64)
     """
     Recursive definition of Hermite Gaussian coefficients.
     Returns a float.
-    a: orbital exponent on Gaussian 'a' (e.g. alpha in the text)
-    b: orbital exponent on Gaussian 'b' (e.g. beta in the text)
+    a: orbital exponent on Gaussian 'a'
+    b: orbital exponent on Gaussian 'b' 
     i, j: orbital angular momentum number on Gaussian 'a' and 'b'
     t: number nodes in Hermite (depends on type of integral,
        e.g. always zero for overlap integrals)
     Qx: distance between origins of Gaussian 'a' and 'b'
     """
     p = a + b
-    q = a * b / p
+    q = (a * b )/ p
+    e = 2.718281828459045
     if (t < 0) || (t > (i + j))
+        #println("1st argument")
         # out of bounds for t
         return 0.0
-    elseif i == j == t == 0
+    #println("this line is ok")
+    elseif i == j == 0.0 && t==0
+        #println("2nd argument")
         # base case
-        return exp(-q * Qx * Qx) # K_AB
+        return e^(-q * Qx * Qx) # K_AB
+    #println("the 2nd argument is also okay")
     elseif j == 0
+        #println("3rd argument")
         # decrement index i
         return (1 / (2 * p)) * E(i - 1, j, t - 1, Qx, a, b) -
                (q * Qx / a) * E(i - 1, j, t, Qx, a, b) +
                (t + 1) * E(i - 1, j, t + 1, Qx, a, b)
+        #println("the 3rd argument is also okay")
     else
+        #println("4th argument")
         # decrement index j
         return (1 / (2 * p)) * E(i, j - 1, t - 1, Qx, a, b) +
                (q * Qx / b) * E(i, j - 1, t, Qx, a, b) +
                (t + 1) * E(i, j - 1, t + 1, Qx, a, b)
+        #println("the 4th argument is also okay")
     end
 end
-function overlap(a, lmn1, A, b, lmn2, B)
+function overlap(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64}, b::Float64, lmn2::Vector{Float64}, B::Vector{Float64})
     """
     Evaluates overlap integral between two Gaussians
     Returns a float.
-    a:    orbital exponent on Gaussian 'a' (e.g. alpha in the text)
-    b:    orbital exponent on Gaussian 'b' (e.g. beta in the text)
+    a:    orbital exponent on Gaussian 'a' 
+    b:    orbital exponent on Gaussian 'b' 
     lmn1: tuple containing orbital angular momentum (e.g. (1,0,0))
           for Gaussian 'a'
     lmn2: tuple containing orbital angular momentum for Gaussian 'b'
@@ -56,7 +65,7 @@ function overlap(a, lmn1, A, b, lmn2, B)
     S1 = E(l1, l2, 0, A[1] - B[1], a, b) # X
     S2 = E(m1, m2, 0, A[2] - B[2], a, b) # Y
     S3 = E(n1, n2, 0, A[3] - B[3], a, b) # Z
-    return S1 * S2 * S3 * (pi / (a + b))^(3/2)
+    return S1 * S2 * S3 * ((pi / (a + b))^(3/2))
 end
 
 
@@ -78,78 +87,51 @@ function S(a, b)
     end
     return s
 end
-mutable struct BasisFunction
-    """
-    A struct that contains all our basis function data
-    Attributes:
-    origin: array/list containing the coordinates of the Gaussian origin
-    shell: tuple of angular momentum
-    exps: list of primitive Gaussian exponents
-    coefs: list of primitive Gaussian coefficients
-    num_exps: number of primitive Gaussian exponents
-    norm: list of normalization factors for Gaussian primitives
-    """
-    origin::Array{Float64}
-    shell::Array{Float64}
-    exps::Array{Float64}
-    coefs::Array{Float64}
-    num_exps::Int64
-    norms::Array{Float64}
-end
+function S(aexps::Vector{Float64}, acoefs::Vector{Float64}, ashell::Vector{Float64}, anorm::Vector{Float64}, aorigin::Vector{Float64},
+    bexps::Vector{Float64}, bcoefs::Vector{Float64}, bshell::Vector{Float64}, bnorm::Vector{Float64}, borigin::Vector{Float64})
 
-function BasisFunction(; origin=[0.0, 0.0, 0.0], shell=(0, 0, 0), exps=[], coefs=[], num_exps=0)
-    if num_exps == 0
-        num_exps = length(exps)
-    end
-    bf = BasisFunction(origin, shell, exps, coefs, num_exps, [0.0])
-    normalize_basis!(bf)
-    return bf
-end
+    noa_coeffs = length(acoefs)
+    nob_coeffs = length(bcoefs)
+    s = 0.0
 
-function normalize_basis!(bf::BasisFunction)
-    """
-    Routine to normalize the basis functions, in case they do not integrate to unity.
-    """
-    l, m, n = bf.shell
-    l=convert(Int64,l)
-    m=convert(Int64,m)
-    n=convert(Int64,n)
-    println(l,m,n)
-    L = l + m + n
-    #println(L)
-    #println(bf.exps)
-    #println(fact2(2*l-1))
-    #println((2.0^(2*(l + m + n) + 1.5)).*bf.exps.^((l + m + n + 1.5) ))
-
-    #println((fact2(2*l - 1) .* fact2(2*m - 1) .* fact2(2*n - 1) .* pi^1.5))
-    # norm is an array of length equal to number primitives
-    # normalize primitives first (PGBFs)
-    bf.norms = sqrt.(2.0^(2*(l + m + n) + 1.5) .* bf.exps.^(l + m + n + 1.5) /(fact2(2*l - 1) .* fact2(2*m - 1) .* fact2(2*n - 1) .* pi^1.5))
-
-    # now normalize the contracted basis functions (CGBFs)
-    # Eq. 1.44 of Valeev integral whitepaper
-    prefactor = (pi^1.5 .* fact2(2*l - 1) .* fact2(2*m - 1) .* fact2(2*n - 1)) / 2.0^L
-
-    N = 0.0
-    for ia in 1:bf.num_exps
-        for ib in 1:bf.num_exps
-            N += bf.norms[ia] * bf.norms[ib] * bf.coefs[ia] * bf.coefs[ib] /
-                 (bf.exps[ia] + bf.exps[ib])^(L + 1.5)
+    for ia in 1:noa_coeffs
+        for ib in 1:nob_coeffs
+            #println("the typeof of ashell is",typeof(ashell))
+            #println(ashell)
+            s += anorm[ia] * bnorm[ib] * acoefs[ia] * bcoefs[ib]* overlap(aexps[ia],ashell, aorigin,bexps[ib],bshell, borigin)
         end
     end
-
-    N *= prefactor
-    N = 1 / sqrt(N)
-    bf.coefs .*= N
-    return N
+    return s
+end
+function S_mat(exps::Array{Any}, coefs::Vector{Any}, origins::Vector{Vector{Float64}}, shells::Vector{Any}, norms::Vector{Any})
+    nbasis = length(exps)
+    smat = zeros(nbasis, nbasis)
+    smat_view = view(smat, :, :)
+    s = 0.0
+    for i in 1:nbasis
+        for j in 1:i
+            if j == i
+                s = 1.0
+                smat_view[i,j]=smat_view[j,i]=s
+            else
+                s = S(exps[i], coefs[i], shells[i], norms[i], origins[i], exps[j], coefs[j], shells[j], norms[j], origins[j])
+                #println("the shells are",shells[i, :],shells[j, :])
+                smat_view[i, j] = smat_view[j, i] = s
+            end
+        end
+    end
+    
+    return smat
+    display(smat)
 end
 
-function kinetic(a, lmn1, A, b, lmn2, B)
+
+function kinetic(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64}, b::Float64, lmn2::Vector{Float64}, B::Vector{Float64})
     """
     Evaluates kinetic energy integral between two Gaussians. Returns a float.
     
-    a: orbital exponent on Gaussian 'a' (e.g. alpha in the text)
-    b: orbital exponent on Gaussian 'b' (e.g. beta in the text)
+    a: orbital exponent on Gaussian 'a'
+    b: orbital exponent on Gaussian 'b' 
     lmn1: int tuple containing orbital angular momentum (e.g. (1,0,0))
           for Gaussian 'a'
     lmn2: int tuple containing orbital angular momentum for Gaussian 'b'
@@ -159,20 +141,21 @@ function kinetic(a, lmn1, A, b, lmn2, B)
     l1, m1, n1 = lmn1
     l2, m2, n2 = lmn2
     term0 = b * (2 * (l2 + m2 + n2) + 3) *
-            overlap(a, (l1, m1, n1), A, b, (l2, m2, n2), B)
+            overlap(a, lmn1, A, b, lmn2, B)
     term1 = -2 * b^2 *
-            (overlap(a, (l1, m1, n1), A, b, (l2 + 2, m2, n2), B) +
-             overlap(a, (l1, m1, n1), A, b, (l2, m2 + 2, n2), B) +
-             overlap(a, (l1, m1, n1), A, b, (l2, m2, n2 + 2), B))
+            (overlap(a, [l1, m1, n1], A, b, [l2 + 2, m2, n2], B) +
+             overlap(a, [l1, m1, n1], A, b, [l2, m2 + 2, n2], B) +
+             overlap(a, [l1, m1, n1], A, b, [l2, m2, n2 + 2], B))
     term2 = -0.5 * (l2 * (l2 - 1) *
-             overlap(a, (l1, m1, n1), A, b, (l2 - 2, m2, n2), B) +
+             overlap(a, [l1, m1, n1], A, b, [l2 - 2, m2, n2], B) +
              m2 * (m2 - 1) *
-             overlap(a, (l1, m1, n1), A, b, (l2, m2 - 2, n2), B) +
+             overlap(a, [l1, m1, n1], A, b, [l2, m2 - 2, n2], B) +
              n2 * (n2 - 1) *
-             overlap(a, (l1, m1, n1), A, b, (l2, m2, n2 - 2), B))
+             overlap(a, [l1, m1, n1], A, b, [l2, m2, n2 - 2], B))
     return term0 + term1 + term2
 end
-function T(a::BasisFunction, b::BasisFunction)
+function T(aexps::Vector{Float64}, acoefs::Vector{Float64}, ashell::Vector{Float64}, anorm::Vector{Float64}, aorigin::Vector{Float64},
+    bexps::Vector{Float64}, bcoefs::Vector{Float64}, bshell::Vector{Float64}, bnorm::Vector{Float64}, borigin::Vector{Float64})
     """
     Evaluates kinetic energy between two contracted Gaussians
     Returns a float.
@@ -182,15 +165,37 @@ function T(a::BasisFunction, b::BasisFunction)
     b: contracted Gaussian 'b', BasisFunction object
     """
     t = 0.0
-    for (ia, ca) in enumerate(a.coefs)
-        for (ib, cb) in enumerate(b.coefs)
-            t += a.norm[ia] * b.norm[ib] * ca * cb *
-                 kinetic(a.exps[ia], a.shell, a.origin,
-                         b.exps[ib], b.shell, b.origin)
+    for (ia, ca) in enumerate(acoefs)
+        for (ib, cb) in enumerate(bcoefs)
+            coef1 = acoefs[ia]
+            coef2 = bcoefs[ib]
+            t += anorm[ia] * bnorm[ib] * ca * cb *
+                 kinetic(aexps[ia], ashell, aorigin,
+                         bexps[ib], bshell, borigin)
         end
     end
     return t
 end
+
+function T_mat(exps::Array{Any}, coefs::Vector{Any}, origins::Vector{Vector{Float64}}, shells::Vector{Any}, norms::Vector{Any})
+    nbasis = length(exps)
+    tmat = zeros(nbasis, nbasis)
+    tmat_view = view(tmat, :, :)
+    s = 0.0
+    for i in 1:nbasis
+        for j in 1:i
+            s = T(exps[i], coefs[i], shells[i], norms[i], origins[i], exps[j], coefs[j], shells[j], norms[j], origins[j])
+            tmat_view[i, j] = tmat_view[j, i] = s
+            
+        end
+    end
+    
+    return tmat
+    display(tmat)
+end
+
+
+
 function R(t, u, v, n, p, PCx, PCy, PCz, RPC)
     """
     Returns the Coulomb auxiliary Hermite integrals

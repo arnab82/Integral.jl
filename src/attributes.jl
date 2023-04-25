@@ -1,5 +1,6 @@
 
 include(".//Intgl.jl")
+include(".//molecule.jl")
 function Basis_attributes_finder(atom)
 	basis_set_STO3G = Dict("H" =>  [[[3.425250914, 0.6239137298, 0.168855404], [0.1543289673, 0.5353281423, 0.4446345422], [0, 0, 0]]], 
 		"He" =>  [[[6.362421394, 1.158922999, 0.3136497915], [0.1543289673, 0.5353281423, 0.4446345422], (0, 0, 0)]],
@@ -188,11 +189,11 @@ using LinearAlgebra
 
 
 function sort_attri(orbital_objects)
-    exps_ = Vector{Float64}[]
-    coefs_ = Vector{Float64}[]
+    exps_ = []
+    coefs_ = []
     origins = []
     shells = []
-    norms = Vector{Float64}[]
+    norms = []
     for obj in orbital_objects
         E = Float64.(obj.exps)
         C = Float64.(obj.coefs)
@@ -231,36 +232,33 @@ function orbital_config(atoms, geom, basis_set)
 	for i in 1:lastindex(attributes)
 		for j in 1:lastindex(attributes[i])
 			norms=BasisFunction(attributes[i][j][4], attributes[i][j][3], attributes[i][j][1], attributes[i][j][2],size(attributes[i][j][1])[1],[0.0])
-			norms=normalize_basis!(norms)
-			push!(orbital_objects, BasisFunction(attributes[i][j][4], attributes[i][j][3], attributes[i][j][1], attributes[i][j][2],size(attributes[i][j][1])[1],[norms]))
+			N,norms=normalize_basis!(norms)
+			push!(orbital_objects, BasisFunction(attributes[i][j][4], attributes[i][j][3], attributes[i][j][1], attributes[i][j][2],size(attributes[i][j][1])[1],norms))
 		end
 	end
 	display(orbital_objects)
 	return sort_attri(orbital_objects)
 end
 
-"""function sort_attri(orbital_objects)
-    exps_ = []
-    coefs_ = []
-    origins = []
-    shells = []
-    norms = []
-    for i in 1:lastindex(orbital_objects)
-        E = Float64.(orbital_objects[i].exps)
-        C = Float64.(orbital_objects[i].coefs)
-        N = Float64.(orbital_objects[i].norms)
-        push!(exps_, E)
-        push!(coefs_, C)
-        push!(origins, orbital_objects[i].origin)
-        push!(shells, orbital_objects[i].shell)
-        push!(norms, N)
-    end
 
-    return exps_, coefs_, Float64.(origins), Int.(shells), norms
-end
-"""
 
 basis_set="sto3g"
-atoms=["H","H","O"]
-geom=[[-1,1,0],[1,1,0],[0,0,0]]
+atoms=["O","H","H"]
+geom=[[0.000000000000 , -0.143225816552  , 0.000000000000],[1.638036840407 ,  1.136548822547 , -0.000000000000],[-1.638036840407  , 1.136548822547  ,-0.000000000000]]
 exp,coeff,origins,shells,norms=orbital_config(atoms,geom,basis_set)
+println(typeof(origins))
+origin=ang2bohr.*origins
+println("the exponents are",exp,"\n")
+display(exp)
+println("the coefficients are",coeff,"\n")
+display(coeff)
+println("the origins are",origin,"\n")
+display(origin)
+println(typeof(origin))
+println("the shells are",shells,"\n")
+display(shells)
+println("the norms are",norms,"\n")
+display(norms)
+S_mat(exp,coeff,origin,shells,norms)
+T_mat(exp,coeff,origin,shells,norms)
+#println(ang2bohr)
