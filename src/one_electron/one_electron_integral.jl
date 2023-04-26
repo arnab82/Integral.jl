@@ -137,12 +137,12 @@ function nuclear_attraction(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64
     """
     l1, m1, n1 = lmn1 
     l2, m2, n2 = lmn2
-    println(l1)
+    #println(l1)
     p = a + b
     P = gaussian_product_center(a, A, b, B)
-    println(P) # Gaussian composite center
+    #println(P) # Gaussian composite center
     RPC = norm(P - C)
-    println(RPC)
+    #println(RPC)
     val = 0.0
     for t in 0:convert(Int64,l1+l2)
         for u in 0:convert(Int64,m1+m2)

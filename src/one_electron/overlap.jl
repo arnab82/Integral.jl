@@ -49,6 +49,7 @@ function E(i::Float64, j::Float64, t::Int64, Qx::Float64, a::Float64, b::Float64
         #println("the 4th argument is also okay")
     end
 end
+
 function overlap(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64}, b::Float64, lmn2::Vector{Float64}, B::Vector{Float64})
     """
     Evaluates overlap integral between two Gaussians

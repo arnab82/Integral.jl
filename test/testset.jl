@@ -1,5 +1,5 @@
-using JSON3
-#include("./../src/attributes.jl")
+"""using JSON3
+include("./../src/attributes.jl")
 include("./../src/molecule.jl")
 include("./../src/Intgl.jl")
 # Read the contents of the file into a string
@@ -10,15 +10,15 @@ bs = JSON3.read(json_string)
 nested_object_property = bs.elements["1"].electron_shells[1]
 
 
-#function getBasis(self, basis_name)
-    """
+function getBasis(self, basis_name)
+    
     Routine to read the basis set files (EMSL Gaussian 94 standard)
     The file is first split into atoms, then iterated through (once).
     At the end we get a basis, which is a dictionary of atoms and their
     basis functions: a tuple of angular momentum and the primitives
     Return: {atom: [('angmom',[(exp,coef),...]), ('angmom',[(exp,...}
     Return: Dict{Int, Tuple{String, Tuple{Float64, Float64}[]}[]}
-    """
+    
 
 basis_name="sto-3g"
 filename=(lowercase(basis_name))*".gbs"
@@ -49,5 +49,4 @@ println(Level_of_theory, " ", basis_set, " ", charge, " ", multiplicity)
 println(Atoms)
 println(geom)
 
-exps, coefs, origins, shells, norms = orbital_config(Atoms, geom_raw)
-
+exps, coefs, origins, shells, norms = orbital_config(Atoms, geom_raw)"""
