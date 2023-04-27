@@ -346,69 +346,7 @@ function read_molecule(geometry::String)
     return  0,1,atomlist
 end
 
-function one_electron_integrals(obj)
-    """
-    Routine to set up and compute one-electron integrals
-    """
-    N = obj.nbasis
 
-    # core integrals
-    obj.S = zeros(N,N)
-    obj.V = zeros(N,N)
-    obj.T = zeros(N,N)
-
-    # dipole integrals
-    obj.M = zeros(3,N,N)
-    obj.mu = zeros(3,Complex)
-
-    # angular momentum
-    obj.L = zeros(3,N,N)
-
-    obj.nuc_energy = 0.0
-
-    # Get one electron integrals
-    for i in 1:N
-        for j in 1:i
-            obj.S[i,j] = obj.S[j,i] = S(obj.bfs[i], obj.bfs[j])
-            obj.T[i,j] = obj.T[j,i] = T(obj.bfs[i], obj.bfs[j])
-
-            obj.M[1,i,j] = obj.M[1,j,i] = Mu(obj.bfs[i], obj.bfs[j], obj.center_of_charge, "x")
-            obj.M[2,i,j] = obj.M[2,j,i] = Mu(obj.bfs[i], obj.bfs[j], obj.center_of_charge, "y")
-            obj.M[3,i,j] = obj.M[3,j,i] = Mu(obj.bfs[i], obj.bfs[j], obj.center_of_charge, "z")
-
-            for atom in obj.atoms
-                obj.V[i,j] += -atom.charge * V(obj.bfs[i], obj.bfs[j], atom.origin)
-            end
-            obj.V[j,i] = obj.V[i,j]
-
-            # RxDel is antisymmetric
-            obj.L[1,i,j] = RxDel(obj.bfs[i], obj.bfs[j], obj.center_of_charge, "x")
-            obj.L[2,i,j] = RxDel(obj.bfs[i], obj.bfs[j], obj.center_of_charge, "y")
-            obj.L[3,i,j] = RxDel(obj.bfs[i], obj.bfs[j], obj.center_of_charge, "z")
-
-            obj.L[:,j,i] = -1 * obj.L[:,i,j]
-        end
-    end
-
-    # Compute nuclear repulsion energy
-    for pair in combinations(obj.atoms,2)
-        obj.nuc_energy += pair[1].charge * pair[2].charge / norm(pair[1].origin - pair[2].origin)
-    end
-
-    # Preparing for SCF
-    obj.Core = obj.T + obj.V
-    obj.X = pow(obj.S,-0.5)
-    obj.U = pow(obj.S,0.5)
-end
-function two_electron_integrals(self)
-    """
-    Routine to setup and compute two-electron integrals
-    """
-    N = self.nbasis
-    self.TwoE = zeros(N,N,N,N)  
-    doERIs!(N, self.TwoE, self.bfs)
-    self.TwoE = Array(self.TwoE)
-end
 
 
 

@@ -62,7 +62,7 @@ function T(aexps::Vector{Float64}, acoefs::Vector{Float64}, ashell::Vector{Float
     return t
 end
 
-function T_mat(exps::Array{Any}, coefs::Vector{Any}, origins::Vector{Vector{Float64}}, shells::Vector{Any}, norms::Vector{Any})
+function T_mat(exps::Array{Any}, coefs::Vector{Any}, origins::Vector{Any}, shells::Vector{Any}, norms::Vector{Any})
     nbasis = length(exps)
     tmat = zeros(nbasis, nbasis)
     tmat_view = view(tmat, :, :)
@@ -181,7 +181,7 @@ function V(aexps::Vector{Float64}, acoefs::Vector{Float64}, ashell::Vector{Float
     return v
 end
 
-function V_mat(exps::Array{Any}, coefs::Vector{Any}, origins::Vector{Vector{Float64}}, shells::Vector{Any}, norms::Vector{Any}, atomic_nos::Vector{Any}, geom)
+function V_mat(exps::Array{Any}, coefs::Vector{Any}, origins::Vector{Any}, shells::Vector{Any}, norms::Vector{Any}, atomic_nos::Vector{Any}, geom)
 
     nbasis = length(exps)
     no_of_atoms = length(atomic_nos)

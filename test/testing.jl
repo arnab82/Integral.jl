@@ -4,9 +4,9 @@ include(".//..//src/Intgl.jl")
 basis_set="sto3g"
 atoms=["O","H","H"]
 geom=[[0.000000000000 , -0.143225816552  , 0.000000000000],[1.638036840407 ,  1.136548822547 , -0.000000000000],[-1.638036840407  , 1.136548822547  ,-0.000000000000]]
-exp,coeff,origins,shells,norms=orbital_config(atoms,geom,basis_set)
-println(typeof(origins))
-origin=ang2bohr.*origins
+exp,coeff,origin,shells,norms=orbital_config(atoms,geom,basis_set)
+#println(typeof(origins))
+#origin=ang2bohr.*origins
 println("the exponents are",exp,"\n")
 display(exp)
 println("the coefficients are",coeff,"\n")
@@ -19,7 +19,10 @@ display(shells)
 println("the norms are",norms,"\n")
 display(norms)
 S_mat(exp,coeff,origin,shells,norms)
+println(S_mat(exp,coeff,origin,shells,norms))
+display(S_mat(exp,coeff,origin,shells,norms))
 T_mat(exp,coeff,origin,shells,norms)
+display(T_mat(exp,coeff,origin,shells,norms))
 #println(ang2bohr)
 """inFile = ARGS[1]
 f = open(inFile, "r")
@@ -57,7 +60,9 @@ no_of_e , atomic_nos = no_of_electrons(atoms)
 println(atomic_nos)
 
 Potential_mat = V_mat(exp,coeff,origin,shells,norms,atomic_nos,geom)
-E_nuc=enuc(atomic_nos,geom)
+#E_nuc=enuc(atomic_nos,geom)
+display(Potential_mat)
 println(E_nuc)
 twoe,eri = Eri_mat(exp,coeff,origin,shells,norms)
 display(twoe)
+"""[array([27.55116782,  7.68181999,  2.88241787]), array([2.39491488, 0.80156184, 0.34520813]), array([10.74583263,  1.73374407,  0.42581893]), array([10.74583263,  1.73374407,  0.42581893]), array([10.74583263,  1.73374407,  0.42581893]), array([1.79444183, 0.50032649, 0.18773546]), array([1.79444183, 0.50032649, 0.18773546])]"""

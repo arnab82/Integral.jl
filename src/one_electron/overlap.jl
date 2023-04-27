@@ -1,4 +1,3 @@
-
 #include("./../basis.jl")
 using SpecialFunctions
 using Combinatorics: doublefactorial
@@ -24,29 +23,18 @@ function E(i::Float64, j::Float64, t::Int64, Qx::Float64, a::Float64, b::Float64
     q = (a * b )/ p
     e = 2.718281828459045
     if (t < 0) || (t > (i + j))
-        #println("1st argument")
-        # out of bounds for t
         return 0.0
-    #println("this line is ok")
     elseif i == j == 0.0 && t==0
-        #println("2nd argument")
         # base case
         return e^(-q * Qx * Qx) # K_AB
-    #println("the 2nd argument is also okay")
     elseif j == 0
-        #println("3rd argument")
         # decrement index i
-        return (1 / (2 * p)) * E(i - 1, j, t - 1, Qx, a, b) -
-               (q * Qx / a) * E(i - 1, j, t, Qx, a, b) +
-               (t + 1) * E(i - 1, j, t + 1, Qx, a, b)
-        #println("the 3rd argument is also okay")
+        return (1.0 / (2 * p)) * E(i - 1, j, t - 1, Qx, a, b) -((q * Qx / a) * E(i - 1, j, t, Qx, a, b)) +((t + 1) * E(i - 1, j, t + 1, Qx, a, b))
     else
-        #println("4th argument")
         # decrement index j
         return (1 / (2 * p)) * E(i, j - 1, t - 1, Qx, a, b) +
                (q * Qx / b) * E(i, j - 1, t, Qx, a, b) +
                (t + 1) * E(i, j - 1, t + 1, Qx, a, b)
-        #println("the 4th argument is also okay")
     end
 end
 
@@ -77,16 +65,16 @@ function S(aexps::Vector{Float64}, acoefs::Vector{Float64}, ashell::Vector{Float
     nob_coeffs = length(bcoefs)
     s = 0.0
 
-    for ia in 1:noa_coeffs
-        for ib in 1:nob_coeffs
+    for (ia,ca) in enumerate(acoefs)
+        for (ib,cb) in enumerate(bcoefs)
             #println("the typeof of ashell is",typeof(ashell))
             #println(ashell)
-            s += anorm[ia] * bnorm[ib] * acoefs[ia] * bcoefs[ib]* overlap(aexps[ia],ashell, aorigin,bexps[ib],bshell, borigin)
+            s += anorm[ia] * bnorm[ib] *ca *cb* overlap(aexps[ia],ashell, aorigin,bexps[ib],bshell, borigin)
         end
     end
     return s
 end
-function S_mat(exps::Array{Any}, coefs::Vector{Any}, origins::Vector{Vector{Float64}}, shells::Vector{Any}, norms::Vector{Any})
+function S_mat(exps::Array{Any}, coefs::Vector{Any}, origins::Vector{Any}, shells::Vector{Any}, norms::Vector{Any})
     nbasis = length(exps)
     smat = zeros(nbasis, nbasis)
     smat_view = view(smat, :, :)

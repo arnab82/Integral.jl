@@ -115,7 +115,7 @@ function ERI(  aexps::Vector{Float64}, acoefs::Vector{Float64}, ashell::Vector{A
     #println(eri)
     end
 end
-function Eri_mat(exps::Vector{Any}, coefs::Vector{Any}, origins::Vector{Vector{Float64}}, shells::Vector{Any}, norms::Vector{Any})
+function Eri_mat(exps::Vector{Any}, coefs::Vector{Any}, origins::Vector{Any}, shells::Vector{Any}, norms::Vector{Any})
     unique = uniqueindex(length(exps))
     length_unique = length(unique)
     Temp_mat = zeros(length_unique)
