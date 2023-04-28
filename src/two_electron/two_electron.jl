@@ -3,21 +3,21 @@ include(".//..//one_electron//overlap.jl")
 include(".//..//one_electron//one_electron_integral.jl")
 function compound_index(i::Int, j::Int, k::Int, l::Int)::Int
     if i > j
-        ij = i*(i+1)÷2 + j
+        ij = i*(i+1)/2 + j
     else
-        ij = j*(j+1)÷2 + i
+        ij = j*(j+1)/2 + i
     end
 
     if k > l
-        kl = k*(k+1)÷2 + l
+        kl = k*(k+1)/2 + l
     else
-        kl = l*(l+1)÷2 + k
+        kl = l*(l+1)/2 + k
     end
 
     if ij > kl
-        ijkl = ij*(ij+1)÷2 + kl
+        ijkl = ij*(ij+1)/2 + kl
     else
-        ijkl = kl*(kl+1)÷2 + ij
+        ijkl = kl*(kl+1)/2 + ij
     end
 
     return Int(ijkl)
@@ -38,7 +38,7 @@ function uniqueindex(n::Int)
     return ll
 end
 
-function electron_repulsion(a::Float64, lmn1::Vector{Any}, A::Vector{Float64}, b::Float64, lmn2::Vector{Any}, B::Vector{Float64},c::Float64, lmn3::Vector{Any}, C::Vector{Float64}, d::Float64, lmn4::Vector{Any}, D::Vector{Float64})
+function electron_repulsion(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64}, b::Float64, lmn2::Vector{Float64}, B::Vector{Float64},c::Float64, lmn3::Vector{Float64}, C::Vector{Float64}, d::Float64, lmn4::Vector{Float64}, D::Vector{Float64})
     """
     Evaluates kinetic energy integral between two Gaussians.
     Returns a float.
@@ -47,33 +47,38 @@ function electron_repulsion(a::Float64, lmn1::Vector{Any}, A::Vector{Float64}, b
                    for Gaussian 'a','b','c','d', respectively
     A,B,C,D:   list containing origin of Gaussian 'a','b','c','d'
     """
-    l1, m1, n1 = lmn1[1]
-    l2, m2, n2 = lmn2[1]
-    l3, m3, n3 = lmn3[1]
-    l4, m4, n4 = lmn4[1]
+    l1, m1, n1 = lmn1
+    l2, m2, n2 = lmn2
+    l3, m3, n3 = lmn3
+    l4, m4, n4 = lmn4
     p = a + b # composite exponent for P (from Gaussians 'a' and 'b')
     q = c + d # composite exponent for Q (from Gaussians 'c' and 'd')
     alpha = p * q / (p + q)
-    P = gaussian_product_center(a, A, b, B) # A and B composite center
-    Q = gaussian_product_center(c, C, d, D) # C and D composite center
-    RPQ = norm(P - Q)
+    P1 = gaussian_product_center(a, A[1], b, B[1]) 
+    P2 = gaussian_product_center(a, A[2], b, B[2]) 
+    P3=gaussian_product_center(a,A[3],b,B[3])
+    Q1 = gaussian_product_center(c, C[1], d, D[1]) 
+    Q2 = gaussian_product_center(c, C[2], d, D[2]) 
+    Q3=gaussian_product_center(c,C[3],d,D[3])
+    PQ1=P1-Q1
+    PQ2=P2-Q2
+    PQ3=P3-Q3
+    RPQ = norm_RPC(PQ1,PQ2,PQ3)
 
     val = 0.0
-    for t in 0:convert(Int64,l1 + l2)
-        for u in 0:convert(Int64,m1 + m2)
-            for v in 0:convert(Int64,n1 + n2)
-                for tau in 0:convert(Int64,l3 + l4)
-                    for nu in 0:convert(Int64,m3 + m4)
-                        for phi in 0:convert(Int64,n3 + n4)
+    for t in 0:convert(Int64,(l1 + l2))
+        for u in 0:convert(Int64,(m1 + m2))
+            for v in 0:convert(Int64,(n1 + n2))
+                for tau in 0:convert(Int64,(l3 + l4))
+                    for nu in 0:convert(Int64,(m3 + m4))
+                        for phi in 0:convert(Int64,(n3 + n4))
                             val += E(l1, l2, t, A[1] - B[1], a, b) *
                                 E(m1, m2, u, A[2] - B[2], a, b) *
                                 E(n1, n2, v, A[3] - B[3], a, b) *
                                 E(l3, l4, tau, C[1] - D[1], c, d) *
                                 E(m3, m4, nu, C[2] - D[2], c, d) *
-                                E(n3, n4, phi, C[3] - D[3], c, d) *
-                                (-1)^(tau + nu + phi) *
-                                R(t + tau, u + nu, v + phi, 0, alpha,
-                                    P[1] - Q[1], P[2] - Q[2], P[3] - Q[3], RPQ)
+                                E(n3, n4, phi, C[3] - D[3], c, d) *((-1)^(tau + nu + phi)) *
+                                R(t + tau, u + nu, v + phi, 0, alpha,PQ1,PQ2,PQ3, RPQ)
                         end
                     end
                 end
@@ -85,10 +90,10 @@ function electron_repulsion(a::Float64, lmn1::Vector{Any}, A::Vector{Float64}, b
     return val
 end
 
-function ERI(  aexps::Vector{Float64}, acoefs::Vector{Float64}, ashell::Vector{Any}, anorm::Vector{Float64}, aorigin::Vector{Float64},  
-    bexps::Vector{Float64}, bcoefs::Vector{Float64}, bshell::Vector{Any}, bnorm::Vector{Float64}, borigin::Vector{Float64},
-    cexps::Vector{Float64}, ccoefs::Vector{Float64}, cshell::Vector{Any}, cnorm::Vector{Float64}, corigin::Vector{Float64},
-    dexps::Vector{Float64}, dcoefs::Vector{Float64}, dshell::Vector{Any}, dnorm::Vector{Float64}, dorigin::Vector{Float64})
+function ERI(  aexps::Vector{Float64}, acoefs::Vector{Float64}, ashell::Vector{Float64}, anorm::Vector{Float64}, aorigin::Vector{Float64},  
+    bexps::Vector{Float64}, bcoefs::Vector{Float64}, bshell::Vector{Float64}, bnorm::Vector{Float64}, borigin::Vector{Float64},
+    cexps::Vector{Float64}, ccoefs::Vector{Float64}, cshell::Vector{Float64}, cnorm::Vector{Float64}, corigin::Vector{Float64},
+    dexps::Vector{Float64}, dcoefs::Vector{Float64}, dshell::Vector{Float64}, dnorm::Vector{Float64}, dorigin::Vector{Float64})
     
     noa_coeffs = length(acoefs)
     nob_coeffs = length(bcoefs)
@@ -129,10 +134,10 @@ function Eri_mat(exps::Vector{Any}, coefs::Vector{Any}, origins::Vector{Any}, sh
         exp1, exp2, exp3, exp4 = exps[a], exps[b], exps[c], exps[d]
         coefs1, coefs2, coefs3, coefs4 = coefs[a], coefs[b], coefs[c], coefs[d]
         norm1, norm2, norm3, norm4 = norms[a], norms[b], norms[c], norms[d]
-        Temp_mat[i] = ERI(exp1, coefs1, shells[a,:], norm1, origins[a],
-                           exp2, coefs2, shells[b,:], norm2, origins[b],
-                           exp3, coefs3, shells[c,:], norm3, origins[c],
-                           exp4, coefs4, shells[d,:], norm4, origins[d])
+        Temp_mat[i] = ERI(exp1, coefs1, shells[a], norm1, origins[a],
+                           exp2, coefs2, shells[b], norm2, origins[b],
+                           exp3, coefs3, shells[c], norm3, origins[c],
+                           exp4, coefs4, shells[d], norm4, origins[d])
     end
         nbasis = length(exps)
         Twoe_mat = zeros(nbasis, nbasis, nbasis, nbasis)

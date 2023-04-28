@@ -95,7 +95,7 @@ function R(t, u, v, n, p, PCx, PCy, PCz, RPC)
     T = p * RPC * RPC
     val = 0.0
     if t == u == v == 0
-        val += (-2 * p)^n * boys(n, T)
+        val += ((-2 * p)^n) * boys(n, T)
     elseif t == u == 0
         if v > 1
             val += (v - 1) * R(t, u, v - 2, n + 1, p, PCx, PCy, PCz, RPC)
@@ -121,6 +121,10 @@ end
 function gaussian_product_center(a, A, b, B)
     return (a * A + b * B) / (a + b)
 end
+function norm_RPC(a::Float64, b::Float64, c::Float64)::Float64
+    s = a^2 + b^2 + c^2
+    return sqrt(s)
+end
 
 function nuclear_attraction(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64}, b::Float64, lmn2::Vector{Float64}, B::Vector{Float64}, C)
     """
@@ -137,20 +141,21 @@ function nuclear_attraction(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64
     """
     l1, m1, n1 = lmn1 
     l2, m2, n2 = lmn2
-    #println(l1)
     p = a + b
-    P = gaussian_product_center(a, A, b, B)
+    RPCdash1 = C[1] - gaussian_product_center(a, A[1], b, B[1])
+    RPCdash2 = C[2] - gaussian_product_center(a, A[2], b, B[2])
+    RPCdash3 = C[3] - gaussian_product_center(a, A[3], b, B[3])
     #println(P) # Gaussian composite center
-    RPC = norm(P - C)
+    RPC = norm_RPC(RPCdash1, RPCdash2, RPCdash3)
     #println(RPC)
     val = 0.0
-    for t in 0:convert(Int64,l1+l2)
-        for u in 0:convert(Int64,m1+m2)
-            for v in 0:convert(Int64,n1+n2)
+    for t in 0:convert(Int64,(l1+l2))
+        for u in 0:convert(Int64,(m1+m2))
+            for v in 0:convert(Int64,(n1+n2))
                 val += E(l1, l2, t, A[1] - B[1], a, b) * 
                        E(m1, m2, u, A[2] - B[2], a, b) * 
                        E(n1, n2, v, A[3] - B[3], a, b) * 
-                       R(t, u, v, 0, p, P[1] - C[1], P[2] - C[2], P[3] - C[3], RPC)
+                       R(t, u, v, 0, p,  -RPCdash1, -RPCdash2, -RPCdash3, RPC)
             end
         end
     end
@@ -185,19 +190,14 @@ function V_mat(exps::Array{Any}, coefs::Vector{Any}, origins::Vector{Any}, shell
 
     nbasis = length(exps)
     no_of_atoms = length(atomic_nos)
+    println(no_of_atoms)
     P1 = zeros((nbasis,nbasis))
     P2 = zeros((nbasis, nbasis))
-
+    v = 0.0
     for i in 1:nbasis
         for j in 1:nbasis
-            v = 0.0
+            
             for k in 1:no_of_atoms
-                exp1 = exps[i]
-                exp2 = exps[j]
-                coefs1 = coefs[i]
-                coefs2 = coefs[j]
-                norm1 = norms[i]
-                norm2 = norms[j]
                 v += atomic_nos[k]*V(exps[i], coefs[i], shells[i], norms[i], origins[i], exps[j], coefs[j], shells[j], 
                                     norms[j], origins[j], geom[k])
             P1[i,j] = -v
@@ -208,7 +208,7 @@ function V_mat(exps::Array{Any}, coefs::Vector{Any}, origins::Vector{Any}, shell
         for n in 1:nbasis
             if m == 1 && n == 1
                 P2[m,n] = P1[1,1]
-            elseif m>1 && n>1
+            elseif n>1
                 P2[m,n] = -(P1[m,n-1] - P1[m,n])
             end
         end
