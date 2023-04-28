@@ -206,7 +206,7 @@ function symbol_name(sym)
         "Tl","Pb","Bi","Po","At","Rn"]
     return symbol[sym]
 end
-function no_of_electrons(atoms::Array{String, 1})
+function no_of_electrons(atoms::Array{Any,1})
     symbol = ["H","He", "Li","Be","B","C","N","O","F","Ne","Na","Mg","Al","Si","P","S","Cl","Ar","K", "Ca", "Sc",
      "Ti", "V", "Cr", "Mn", "Fe","Co", "Ni", "Cu", "Zn","Ga", "Ge", "As", "Se", "Br", "Kr","Rb", "Sr", "Y", "Zr",
      "Nb", "Mo", "Tc", "Ru","Rh", "Pd", "Ag", "Cd","In", "Sn", "Sb", "Te", "I", "Xe","Cs", "Ba", "La", "Ce", "Pr",
