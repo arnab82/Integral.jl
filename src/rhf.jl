@@ -5,7 +5,7 @@ using LinearAlgebra,Statistics
 
 n_elec=10
 no=Int64((n_elec)/2)
-function scf_energy(D,fock,h1e)
+function scf_energy(D::Matrix{Float64},fock::Matrix{Float64},h1e::Matrix{Float64})
     h=[]
     h,nbasis=size(D)
     n_hf_energy=0.0
@@ -111,5 +111,5 @@ function scf(s::Matrix{Float64},T_mat::Matrix{Float64},V_mat::Matrix{Float64},Er
         Hartree_fock_energy=sum(hf_energy)+nuclear_repul
         println("iteration= ",n,"    energy= ", sum(hf_energy)+nuclear_repul,"         delta_e= ",round(del_e,digits=12))
     end
-    return Hartree_fock_energy,eps,c,fock,nbasis
+    return Hartree_fock_energy,c,fock,nbasis
 end

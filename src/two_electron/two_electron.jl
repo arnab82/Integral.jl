@@ -94,32 +94,30 @@ function ERI(  aexps::Vector{Float64}, acoefs::Vector{Float64}, ashell::Vector{F
     bexps::Vector{Float64}, bcoefs::Vector{Float64}, bshell::Vector{Float64}, bnorm::Vector{Float64}, borigin::Vector{Float64},
     cexps::Vector{Float64}, ccoefs::Vector{Float64}, cshell::Vector{Float64}, cnorm::Vector{Float64}, corigin::Vector{Float64},
     dexps::Vector{Float64}, dcoefs::Vector{Float64}, dshell::Vector{Float64}, dnorm::Vector{Float64}, dorigin::Vector{Float64})
-    
-    noa_coeffs = length(acoefs)
-    nob_coeffs = length(bcoefs)
-    noc_coeffs = length(ccoefs)
-    nod_coeffs = length(dcoefs)
-    norm1, norm2, norm3, norm4 = 0.0, 0.0, 0.0, 0.0
-    coef1, coef2, coef3, coef4 = 0.0, 0.0, 0.0, 0.0
-    exp1, exp2, exp3, exp4 = 0.0, 0.0, 0.0, 0.0
-    eri = 0.0
-    for ja in 1:noa_coeffs
-        norm1,coef1,exp1 = anorm[ja],acoefs[ja],aexps[ja]
-        for jb in 1:nob_coeffs
-            norm2,coef2,exp2 = bnorm[jb],bcoefs[jb],bexps[jb]
-            for jc in 1:noc_coeffs
-                norm3,coef3,exp3 = cnorm[jc],ccoefs[jc],cexps[jc]
-                for jd in 1:nod_coeffs
-                    norm4,coef4,exp4 = dnorm[jd],dcoefs[jd],dexps[jd]
-                    eri += norm1*norm2*norm3*norm4*coef1*coef2*coef3*coef4*electron_repulsion(exp1,ashell,aorigin,exp2,bshell,borigin,exp3,cshell,corigin,exp4,dshell,dorigin)
+    eri=0.0
+    for (ja,ca) in enumerate(acoefs)
+        for (jb,cb) in enumerate(bcoefs)
+            for (jc,cc) in enumerate(ccoefs)
+                for (jd,cd) in enumerate(dcoefs)
+                    eri += anorm[ja]*bnorm[jb]*cnorm[jc]*dnorm[jd]*ca*cb*cc*cd*electron_repulsion(aexps[ja],ashell,aorigin,bexps[jb],bshell,borigin,cexps[jc],cshell,corigin,dexps[jd],dshell,dorigin)
                 end
-
             end
         end
+
+    end
     return eri
     #println(eri)
-    end
 end
+
+
+
+
+#a=ERI([130.7093214, 23.80886605, 6.443608313], [0.1543289673, 0.5353281423, 0.4446345422], [0.0, 0.0, 0.0],[27.551167822078394, 7.681819989204459, 2.882417873168662],[0.0, -0.143225816552, 0.0], 
+#[5.033151319, 1.169596125, 0.38038896], [-0.09996722919, 0.3995128261, 0.7001154689], [0.0, 0.0, 0.0],[2.394914882501622, 0.8015618386293725, 0.34520813393821864],[0.0, -0.143225816552, 0.0],
+#[5.033151319, 1.169596125, 0.38038896], [0.155916275, 0.6076837186, 0.3919573931], [1.0, 0.0, 0.0],[10.745832634231425, 1.7337440707285057, 0.42581893344677013],[0.0, -0.143225816552, 0.0],
+#[5.033151319, 1.169596125, 0.38038896], [0.155916275, 0.6076837186, 0.3919573931], [0.0, 1.0, 0.0],[10.745832634231425, 1.7337440707285057, 0.42581893344677013],[0.0, -0.143225816552, 0.0])
+#println(a)
+#error("gcg")
 function Eri_mat(exps::Vector{Any}, coefs::Vector{Any}, origins::Vector{Any}, shells::Vector{Any}, norms::Vector{Any})
     unique = uniqueindex(length(exps))
     length_unique = length(unique)
@@ -130,20 +128,25 @@ function Eri_mat(exps::Vector{Any}, coefs::Vector{Any}, origins::Vector{Any}, sh
     norm1, norm2, norm3, norm4 = 0.0, 0.0, 0.0, 0.0
     #println(unique)
     for i in 1:length_unique
-        a, b, c, d = unique[i][1], unique[i][2], unique[i][3], unique[i][4]
-        exp1, exp2, exp3, exp4 = exps[a], exps[b], exps[c], exps[d]
-        coefs1, coefs2, coefs3, coefs4 = coefs[a], coefs[b], coefs[c], coefs[d]
-        norm1, norm2, norm3, norm4 = norms[a], norms[b], norms[c], norms[d]
-        Temp_mat[i] = ERI(exp1, coefs1, shells[a], norm1, origins[a],
-                           exp2, coefs2, shells[b], norm2, origins[b],
-                           exp3, coefs3, shells[c], norm3, origins[c],
-                           exp4, coefs4, shells[d], norm4, origins[d])
+            a, b, c, d = unique[i][1], unique[i][2], unique[i][3], unique[i][4]
+            #println(a,b,c,d)
+            exp1, exp2, exp3, exp4 = exps[a], exps[b], exps[c], exps[d]
+            #println(exp1,exp2,exp3,exp4)
+            coefs1, coefs2, coefs3, coefs4 = coefs[a], coefs[b], coefs[c], coefs[d]
+            #println(coefs1,coefs2,coefs3,coefs4)
+            norm1, norm2, norm3, norm4 = norms[a], norms[b], norms[c], norms[d]
+            #println(norm1,norm2,norm3,norm4)
+            #println(origins[a],origins[b],origins[c],origins[d])
+            Temp_mat[i] = ERI(exp1, coefs1, shells[a], norm1, origins[a],
+                            exp2, coefs2, shells[b], norm2, origins[b],
+                            exp3, coefs3, shells[c], norm3, origins[c],
+                            exp4, coefs4, shells[d], norm4, origins[d])
+        #println(Temp_mat)
     end
         nbasis = length(exps)
         Twoe_mat = zeros(nbasis, nbasis, nbasis, nbasis)
         ij, kl = 0.0, 0.0
-        m, j, k, l = 1, 1, 1, 1
-
+        m=1
         for i in 1:nbasis
             for j in 1:i
                 for k in 1:nbasis
@@ -168,4 +171,33 @@ function Eri_mat(exps::Vector{Any}, coefs::Vector{Any}, origins::Vector{Any}, sh
         end
 
     return Twoe_mat, Temp_mat
+end
+function doERIs(exps::Vector{Any}, coefs::Vector{Any}, origins::Vector{Any}, shells::Vector{Any}, norms::Vector{Any})
+    N=length(exps)
+    TwoE= zeros(N,N,N,N)
+    for i in 1:N
+        for j in 1:i
+            ij = (i*(i-1)/2 + j)
+            for k in 1:N 
+                for l in 1:k
+                    kl = (k*(k-1)/2 + l)
+                    if ij ≥ kl
+                        val = ERI(exps[i], coefs[i], shells[i], norms[i], origins[i],
+                        exps[j], coefs[j], shells[j], norms[j], origins[j],
+                        exps[k], coefs[k], shells[k], norms[k], origins[k],
+                        exps[l], coefs[l], shells[l], norms[l], origins[l])
+                        TwoE[i,j,k,l] = val
+                        TwoE[k,l,i,j] = val
+                        TwoE[j,i,l,k] = val
+                        TwoE[l,k,j,i] = val
+                        TwoE[j,i,k,l] = val
+                        TwoE[l,k,i,j] = val
+                        TwoE[i,j,l,k] = val
+                        TwoE[k,l,j,i] = val
+                    end
+                end
+            end
+        end
+    end
+    return TwoE
 end

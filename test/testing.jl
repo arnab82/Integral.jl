@@ -19,11 +19,21 @@ println("the shells are",shells,"\n")
 display(shells)
 println("the norms are",norms,"\n")
 display(norms)
-S_matrix=S_mat(exp,coeff,origin,shells,norms)
-println(S_mat(exp,coeff,origin,shells,norms))
+#-----------------------------------------
+#       Overlap integrals
+#-----------------------------------------
 
+@time S_matrix=S_mat(exp,coeff,origin,shells,norms)
+println(S_mat(exp,coeff,origin,shells,norms))
 #display(S_mat(exp,coeff,origin,shells,norms))
-kinetic_energy=T_mat(exp,coeff,origin,shells,norms)
+
+
+	#----------------------------------------
+	#     Kinetic integrals
+	#----------------------------------------
+
+
+@time kinetic_energy=T_mat(exp,coeff,origin,shells,norms)
 #display(T_mat(exp,coeff,origin,shells,norms))
 #println(ang2bohr)
 
@@ -45,10 +55,10 @@ end
 mol=make_molecule()
 
 function pyscf_2e(mol)
-    eri = mol.intor("int2e")
+    eri = mol.intor("int2e",aosym="s8")
     return eri
 end
-#display(pyscf_2e(mol))
+
 
 """inFile = ARGS[1]
 f = open(inFile, "r")
@@ -85,17 +95,27 @@ geom = convert(Array{Float64, 2}, geom_raw)"""
 no_of_e , atomic_nos = no_of_electrons(atoms)
 println(atomic_nos)
 
-Potential_mat = V_mat(exp,coeff,origin,shells,norms,atomic_nos,geom)
+	#---------------------------------------
+	#   Coulomb integrals
+	#---------------------------------------
+@time Potential_mat = V_mat(exp,coeff,origin,shells,norms,atomic_nos,geom)
 println(typeof(Potential_mat))
-E_nuc=enuc(atomic_nos,geom)
 display(Potential_mat)
+#---------------------------------------
+#     ENUC
+#--------------------------------------
+@time E_nuc=enuc(atomic_nos,geom)
 println(E_nuc)
+
 core_h=kinetic_energy+Potential_mat
 display(core_h)
 println(core_h)
-twoe,eri = Eri_mat(exp,coeff,origin,shells,norms)
-println(typeof(twoe))
-"""[array([27.55116782,  7.68181999,  2.88241787]), array([2.39491488, 0.80156184, 0.34520813]), array([10.74583263,  1.73374407,  0.42581893]), array([10.74583263,  1.73374407,  0.42581893]), array([10.74583263,  1.73374407,  0.42581893]), array([1.79444183, 0.50032649, 0.18773546]), array([1.79444183, 0.50032649, 0.18773546])]"""
+	#----------------------------------------
+	#  Two elec integrals 
+	#----------------------------------------
+@time twoe,eri = Eri_mat(exp,coeff,origin,shells,norms)
+@time eri2=doERIs(exp,coeff,origin,shells,norms)
+println(eri)
 
 s_half=make_s_half(S_matrix)
 display(s_half)
@@ -113,13 +133,7 @@ D=make_density(c,no)
 display(D)
 initial_E=scf_energy(D,init_fock,core_h)
 println(initial_E)
-#Hartree_fock_energy,E,c,fock,nbasis=scf(S_matrix,kinetic_energy,Potential_mat,twoe,E_nuc)
-#println("final Hartree fock energy= ", Hartree_fock_energy)
-#println(E)
-#println("the value of coefficient matrix is",c)
-#println("the size of fock is ",size(fock))
-#endtime=time.time()
-#println("the runtime of the code is", endtime-start)
-display(uniqueindex(7))
-display(twoe)
-println(size(twoe))
+@time Hartree_fock_energy,c,fock,nbasis=scf(S_matrix,kinetic_energy,Potential_mat,twoe,E_nuc)
+println("final Hartree fock energy= ", Hartree_fock_energy)
+@time a=pyscf_2e(mol)
+#display(doERIs(exp,coeff,origin,shells,norms))

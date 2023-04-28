@@ -95,5 +95,3 @@ function S_mat(exps::Array{Any}, coefs::Vector{Any}, origins::Vector{Any}, shell
     return smat
     display(smat)
 end
-
-
