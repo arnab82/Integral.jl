@@ -69,7 +69,7 @@ function make_s_half(S::Matrix{Float64})
 end 
 #scf initialisation 
 
-function scf(s::Matrix{Float64},T_mat::Matrix{Float64},V_mat::Matrix{Float64},Eri::Array{Float64, 4},nuclear_repul::Float64)
+function scf(s::Matrix{Float64},T_mat::Matrix{Float64},V_mat::Matrix{Float64},Eri::Array{Float64, 4},nuclear_repul::Float64,no_of_e::Int64)
     h,nbasis=size(s)
     h1e=T_mat+V_mat
     fock= zeros(Float64,nbasis,nbasis)
@@ -77,8 +77,8 @@ function scf(s::Matrix{Float64},T_mat::Matrix{Float64},V_mat::Matrix{Float64},Er
     init_fock=(make_s_half(s)*init_fock)
     init_fock=(init_fock+init_fock')/2
     Hartree_fock_energy=0.0
-    E=[]
     del_e=0.0
+    no=Int(no_of_e/2)
     e,c0 = LinearAlgebra.eigen(init_fock)
     c = (make_s_half(s)*c0)
     list_e=[0.0,]

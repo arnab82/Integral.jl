@@ -5,6 +5,9 @@ include(".//../src//rhf.jl")
 basis_set="sto3g"
 atoms=["O","H","H"]
 geom=[[0.000000000000 , -0.143225816552  , 0.000000000000],[1.638036840407 ,  1.136548822547 , -0.000000000000],[-1.638036840407  , 1.136548822547  ,-0.000000000000]]
+
+println(typeof(geom))
+println(typeof(atoms))
 exp,coeff,origin,shells,norms=orbital_config(atoms,geom,basis_set)
 #println(typeof(origins))
 #origin=ang2bohr.*origins

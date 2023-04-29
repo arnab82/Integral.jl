@@ -1,6 +1,8 @@
 include(".//..//src//attributes.jl")
 include(".//..//src/Intgl.jl")
 include(".//../src//rhf.jl")
+
+
 inFile = ARGS[1]
 f = open(inFile, "r")
 content = readlines(f)
@@ -23,21 +25,27 @@ for line in geom_file
     push!(Atoms, line[1])
 end
 println(Atoms)
+println(typeof(Atoms))
 geom = []
 for line in geom_file
     push!(geom, [parse(Float64, x) for x in line[2:end]])
 end
 println(geom)
+println(typeof(geom))
 println(basis_set)
-exp,coeff,origin,shells,norms=orbital_config(Atoms,geom,basis_set)
-if Level_of_theory=="hf"
-    @time S_matrix=S_mat(exp,coeff,origin,shells,norms)
-    @time kinetic_energy=T_mat(exp,coeff,origin,shells,norms)
-    no_of_e , atomic_nos = no_of_electrons(Atoms)
-    @time Potential_mat = V_mat(exp,coeff,origin,shells,norms,atomic_nos,geom)
-    @time E_nuc=enuc(atomic_nos,geom)
-    core_h=kinetic_energy+Potential_mat
-    @time twoe,eri = Eri_mat(exp,coeff,origin,shells,norms)
-    @time Hartree_fock_energy,c,fock,nbasis=scf(S_matrix,kinetic_energy,Potential_mat,twoe,E_nuc)
-    println("final Hartree fock energy= ", Hartree_fock_energy)
+function do_scf(Atoms::Vector{Any},coordinates::Vector{Any},basis_set)
+    exp,coeff,origin,shells,norms=orbital_config(Atoms,geom,basis_set)
+    if Level_of_theory=="hf"
+        @time S_matrix=S_mat(exp,coeff,origin,shells,norms)
+        @time kinetic_energy=T_mat(exp,coeff,origin,shells,norms)
+        no_of_e , atomic_nos = no_of_electrons(Atoms)
+        @time Potential_mat = V_mat(exp,coeff,origin,shells,norms,atomic_nos,geom)
+        @time E_nuc=enuc(atomic_nos,geom)
+        core_h=kinetic_energy+Potential_mat
+        @time twoe,eri = Eri_mat(exp,coeff,origin,shells,norms)
+        @time Hartree_fock_energy,c,fock,nbasis=scf(S_matrix,kinetic_energy,Potential_mat,twoe,E_nuc,no_of_e)
+        println("final Hartree fock energy= ", Hartree_fock_energy)
+    end
+    return Hartree_fock_energy,c,fock,nbasis
 end
+Hartree_fock_energy,c,fock,nbasis=do_scf(Atoms,geom,basis_set)
