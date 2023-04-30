@@ -15,4 +15,6 @@ H 1.638036840407 1.136548822547 -0.000000000000
 
 H -1.638036840407 1.136548822547 -0.00000000000
 
-For running the hartree-fock calculation ,run julia input.jl h2o.inp 
+For running the hartree-fock calculation clone the repo and change the root path of the basis set json files in the input.jl file,run (give proper path of the files) 
+
+julia input.jl h2o.inp 
