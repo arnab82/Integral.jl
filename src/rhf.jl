@@ -6,6 +6,14 @@ using LinearAlgebra,Statistics
 n_elec=10
 no=Int64((n_elec)/2)
 function scf_energy(D::Matrix{Float64},fock::Matrix{Float64},h1e::Matrix{Float64})
+    """
+    Attributes:
+        D: Density matrix 
+        fock: Fock matrix
+        h1e: core hamiltonian matrix
+    return:
+        scf energy: Float64 
+    """
     h=[]
     h,nbasis=size(D)
     n_hf_energy=0.0
@@ -18,6 +26,14 @@ function scf_energy(D::Matrix{Float64},fock::Matrix{Float64},h1e::Matrix{Float64
 end
 
 function make_fock(D::Matrix{Float64},h1e::Matrix{Float64},eri::Array{Float64, 4})
+    """
+    Attributes:
+        D: Density matrix 
+        h1e: core hamiltonian matrix
+        eri: two electron matrix of size(nbasis,nbasis,nbasis,nbasis)
+    return:
+        Fock matrix
+    """
     h=[]
     h,nbasis=size(D)
     fock= zeros(Float64,nbasis,nbasis)
@@ -34,6 +50,13 @@ function make_fock(D::Matrix{Float64},h1e::Matrix{Float64},eri::Array{Float64, 4
     return fock+h1e
 end
 function make_density(c::Matrix{Any},no::Int64)
+    """
+    Attributes:
+        C: Mo co-efficient matrix 
+        no: no of occupied orbitals
+    return:
+        Density matrix
+    """
     h=[]
     h,nbasis=size(c)
     D=zeros(Float64,nbasis,nbasis)
@@ -54,6 +77,12 @@ end
 #println("the nuclear nuclear repulsion term is ",constant,"\n")
 #println("the overlap integral is",S)
 function make_s_half(S::Matrix{Float64}) 
+    """
+    Attributes:
+        S: overlap matrix
+    return:
+        S^(-1/2)
+    """
     s=(S+S')/2
     #println(nbasis)
     q,L=LinearAlgebra.eigen(s)
@@ -70,6 +99,20 @@ end
 #scf initialisation 
 
 function scf(s::Matrix{Float64},T_mat::Matrix{Float64},V_mat::Matrix{Float64},Eri::Array{Float64, 4},nuclear_repul::Float64,no_of_e::Int64)
+    """
+    Attributes:
+        s: overlap matrix
+        T_mat: kinetic energy integral
+        V_mat: potential energy integral
+        eri: two electron integral
+        nuclear_repul: Nuclear repulsion energy
+        no of electrons
+    return:
+        scf energy: Float64 
+        c:  Mo co-efficient matrix
+        fock: Fock Matrix
+        nbasis
+    """
     h,nbasis=size(s)
     h1e=T_mat+V_mat
     fock= zeros(Float64,nbasis,nbasis)

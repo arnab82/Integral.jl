@@ -2,7 +2,8 @@ include(".//..//src//attributes.jl")
 include(".//..//src/Intgl.jl")
 include(".//../src//rhf.jl")
 
-
+#Take the first argument as the input file that contains information about the geometry 
+# charge, multiplicity and level of theory
 inFile = ARGS[1]
 f = open(inFile, "r")
 content = readlines(f)
@@ -34,6 +35,15 @@ println(geom)
 println(typeof(geom))
 println(basis_set)
 function do_scf(Atoms::Vector{Any},coordinates::Vector{Any},basis_set)
+    """
+    A function  that does scf calculation
+    Attributes:
+    Atoms: array/Vector that contains the atoms 
+    coordinates : vector/Array that  contains the x,y,z geomtry 
+    basis_set: String
+    Returns:
+        Hartree Fock energy,mo coefficient matrix ,fock matrix,no of basisfunction
+    """
     exp,coeff,origin,shells,norms=orbital_config(Atoms,geom,basis_set)
     if Level_of_theory=="hf"
         @time S_matrix=S_mat(exp,coeff,origin,shells,norms)

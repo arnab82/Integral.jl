@@ -14,6 +14,11 @@ fact2=sp.factorial2
 
 
 function find_distance(a_coordi::Vector{Float64}, b_coordi::Vector{Float64})
+    """attributes:
+            coordinates of two atoms
+        returns:
+            return the bond-distance between them
+    """
     x_1 = a_coordi[1]
     x_2 = b_coordi[1]
     y_1 = a_coordi[2]
@@ -27,6 +32,13 @@ end
 
 
 function enuc(atomic_nos::Vector{Any}, geom)
+    """
+    attributes:
+        atomic_nos: Vector of the atomic no's of the atoms
+        geom: Array that contains the co-ordinates of the atoms
+    return:
+        Nuclear repulsion energy
+    """
     n = length(atomic_nos)
     E_nuc = 0.0
 

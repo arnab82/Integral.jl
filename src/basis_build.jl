@@ -1,4 +1,4 @@
-
+using JSON
 using JSON3
 function momentum2shell(momentum::Int64)
     """Routine to convert angular momentum to Cartesian shell pair in order
@@ -14,7 +14,7 @@ function momentum2shell(momentum::Int64)
     return shells[momentum]
 end
 # Read the contents of the file into a string
-json_string = read("/home/arnabbachhar/Intgl/basis/3-21g.json", String)
+json_string = read("./../basis/3-21g.json", String)
 
 # Parse the JSON string into a Julia data structure
 bs = JSON3.read(json_string)

@@ -89,6 +89,14 @@ struct Basis_int
 end
 
 struct Molecule
+    """
+    A struct that contains type of molecule
+    Attributes:
+    atoms: array/list of struct type my_Atom
+    charge: contains the total charge of the moecule
+    multiplicity: contains the multiplicity of the molecule => 2S+1 ;S= spin
+    bfs ::Array of basisfunction
+    """
     atoms::Array{my_Atom,1}
     charge::Int64
     multiplicity::Int64
@@ -153,23 +161,7 @@ function formBasis( ::Molecule )
     center_of_charge = sum(origins .* charges', dims=1) ./ sum(charges)
     molecule.center_of_charge = center_of_charge
 end
-function build(self::Molecule, direct::Bool=false)
-    """Routine to build necessary integrals"""
-    one_electron_integrals!(self)
-    if direct
-        # populate dict for screening
-        self.screen = Dict{Int, ERIs}()
-        for p in 1:self.nbasis
-            for q in 1:p
-                pq = p*(p+1)÷2 + q
-                self.screen[pq] = ERI(self.bfs[p],self.bfs[q],self.bfs[p],self.bfs[q])
-            end
-        end
-    else
-        two_electron_integrals!(self)
-    end
-    self.is_built = true
-end
+
 function sym2num(sym)
     """Routine that converts atomic symbol to atomic number"""
     symbol = [
@@ -240,71 +232,6 @@ function no_of_electrons(atoms::Vector{String})
 end
 
 
-function getBasis(self, filename)
-    """
-    Routine to read the basis set files (EMSL Gaussian 94 standard)
-    The file is first split into atoms, then iterated through (once).
-    At the end we get a basis, which is a dictionary of atoms and their
-    basis functions: a tuple of angular momentum and the primitives
-    
-    Return: Dict{Int, Tuple{String, Tuple{Float64, Float64}[]}[]}
-    """
-    basis = Dict{Int, Tuple{String, Tuple{Float64, Float64}[]}[]}()
-
-    basisset = open(filename) do file
-        read(file, String)
-    end
-    data = split(basisset, "****")
-
-    # Iterate through all atoms in basis set file
-    for i in 2:lastindex(data)
-        atomData = [split(x) for x in split(data[i], '\n')[2:end-1]]
-        for (idx, line) in enumerate(atomData)
-            # Ignore empty lines
-            if isempty(line)
-                continue
-            # first line gives atom
-            elseif idx == 1
-                @assert length(line) == 2
-                atom = sym2num(line[1])
-                basis[atom] = []
-                # now set up primitives for particular angular momentum
-                newPrim = true
-            # Perform the set up once per angular momentum
-            elseif idx > 1 && newPrim
-                momentum  = line[1]
-                numPrims  = parse(Int, line[2])
-                newPrim   = false
-                count     = 0
-                prims     = []
-                prims2    = [] # need second list for 'SP' case
-            else
-                # Combine primitives with its angular momentum, add to basis
-                if momentum == "SP"
-                    # Many basis sets share exponents for S and P basis
-                    # functions so unfortunately we have to account for this.
-                    push!(prims, (parse(Float64, replace(line[1], "D" => "E")), parse(Float64, replace(line[2], "D" => "E"))))
-                    push!(prims2, (parse(Float64, replace(line[1], "D" => "E")), parse(Float64, replace(line[3], "D" => "E"))))
-                    count += 1
-                    if count == numPrims
-                        push!(basis[atom], ("S", prims))
-                        push!(basis[atom], ("P", prims2))
-                        newPrim = true
-                    end
-                else
-                    push!(prims, (parse(Float64, replace(line[1], "D" => "E")), parse(Float64, replace(line[2], "D" => "E"))))
-                    count += 1
-                    if count == numPrims
-                        push!(basis[atom], (momentum, prims))
-                        newPrim = true
-                    end
-                end
-            end
-        end
-    end
-
-    return basis
-end
 function momentum2shell(momentum::String)
     """Routine to convert angular momentum to Cartesian shell pair in order
        to create the appropriate BasisFunction object (e.g. form px,py,pz)
