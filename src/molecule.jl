@@ -1,10 +1,12 @@
-
+using PyCall
 using LinearAlgebra
 using DelimitedFiles
 using LinearAlgebra
 #using Base.Iterators: product
 #using StatsBase
-
+sp=pyimport("scipy.special")
+hyp1f1=sp.hyp1f1
+fact2=sp.factorial2
 mutable struct my_Atom
     mass_number::Int64
     mass::Float64
@@ -122,45 +124,6 @@ struct Molecule
 end
     
 
-function formBasis( ::Molecule )
-    """Routine to create the basis from the input molecular geometry and
-       basis set. On exit, you should have a basis in self.bfs, which is a 
-       list of BasisFunction objects. This routine also defines the center
-       of nuclear charge. 
-    """
-    # initialize the list of Basis objects
-    bfs = []
-    for atom in molecule.atoms
-        for (momentum, prims) in molecule.basis_data[atom.charge]
-            exps = [e for (e,c) in prims]
-            coefs = [c for (e,c) in prims]
-            for shell in momentum2shell(momentum)
-                push!(bfs, Basis_int(atom.origin, shell, length(exps), exps, coefs))
-            end
-        end
-    end
-    
-    molecule.bfs = bfs
-    molecule.nbasis = length(bfs)
-    
-    # create masking vector for geometric derivatives
-    idx = 1
-    for atom in molecule.atoms
-        atom.mask = zeros(molecule.nbasis)
-        for (momentum, prims) in molecule.basis_data[atom.charge]
-            for shell in momentum2shell(momentum)
-                atom.mask[idx] = 1.0
-                idx += 1
-            end
-        end
-    end
-
-    # note this is center of positive charge (atoms only, no electrons)
-    charges = [atom.charge for atom in molecule.atoms]
-    origins = [atom.origin for atom in molecule.atoms]
-    center_of_charge = sum(origins .* charges', dims=1) ./ sum(charges)
-    molecule.center_of_charge = center_of_charge
-end
 
 function sym2num(sym)
     """Routine that converts atomic symbol to atomic number"""
@@ -246,51 +209,6 @@ function momentum2shell(momentum::String)
     return shells[momentum]
 end
 
-function read_molecule(geometry::String)
-    # atomic masses (isotop avg)
-    masses = [1.008,4.003,6.941,9.012,10.812,12.011,14.007,5.999,
-        18.998,20.180,22.990,24.305,26.982,28.086,30.974,32.066,
-        35.453,39.948]
-    f = split(geometry, '\n')
-        # remove any empty lines
-    f = filter(x -> !isempty(x), f)            
-    atomlist = []
-    for (line_number, line) in enumerate(f)
-        if line_number == 1
-            @assert length(split(line)) == 2
-            charge = parse(Int, split(line)[1])
-            multiplicity = parse(Int, split(line)[2])
-            #println(charge)
-            #println(multiplicity)
-        else 
-            if length(split(line)) == 0
-                break
-            end
-            @assert length(split(line)) == 4
-            sym = sym2num(split(line)[1])
-            name=symbol_name(sym)
-            println(name)
-            mass = masses[sym]
-            println(sym)
-            println(mass)
-            # Convert Angstrom to Bohr (au)
-            x   = parse(Float64, split(line)[2])/0.52917721092
-            y   = parse(Float64, split(line)[3])/0.52917721092
-            z   = parse(Float64, split(line)[4])/0.52917721092
-            #println([x,y,z])
-            # Convert amu to atomic units
-            mass *= 1822.8885
-            atom = my_Atom(sym,mass,name,[x,y,z])
-            #println(atom)
-            push!(atomlist, atom)
-            #println(atomlist)
-        end
-    end
-    #println(atomlist)
-    return  0,1,atomlist
-end
-
-
 
 
 
@@ -321,52 +239,4 @@ function save_integrals(self::Molecule, folder::String)
             println(f, self.geometry_input)
         end
     end
-end
-function getBasis(self,filename)
-    basis = Dict()
-    f = open(filename, "r")
-    data = split(read(f, String),"****")
-    close(f)
-
-    for i in 2:lastindex(data)
-        atomData = split.(split(data[i],'\n')[2:end-1])
-        newPrim = true
-        for idx = 1:lastindex(atomData)
-            line = atomData[idx]
-            if isempty(line)
-                continue
-            elseif idx == 1
-                @assert length(line) == 2
-                atom = self.sym2num(line[1])
-                basis[atom] = []
-            elseif idx > 1 && newPrim
-                momentum  = line[1]
-                numPrims  = parse(Int64,line[2])
-                newPrim   = false
-                count     = 0
-                prims     = []
-                prims2    = []
-            else
-                if momentum == "SP"
-                    push!(prims,(parse(Float64,replace(line[1],'D'=>'E')),parse(Float64,replace(line[2],'D'=>'E'))))
-                    push!(prims2,(parse(Float64,replace(line[1],'D'=>'E')),parse(Float64,replace(line[3],'D'=>'E'))))
-                    count += 1
-                    if count == numPrims
-                        push!(basis[atom],("S",prims))
-                        push!(basis[atom],("P",prims2))
-                        newPrim = true
-                    end
-                else
-                    push!(prims,(parse(Float64,replace(line[1],'D'=>'E')),parse(Float64,replace(line[2],'D'=>'E'))))
-                    count += 1
-                    if count == numPrims
-                        push!(basis[atom],(momentum,prims))
-                        newPrim = true
-                    end
-                end
-            end
-        end
-    end
-
-    return basis
 end

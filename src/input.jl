@@ -1,6 +1,7 @@
 include(".//..//src//attributes.jl")
 include(".//..//src/Intgl.jl")
 include(".//../src//rhf.jl")
+include(".//..//src//basis_build.jl")
 
 #Take the first argument as the input file that contains information about the geometry 
 # charge, multiplicity and level of theory
@@ -44,7 +45,9 @@ function do_scf(Atoms::Vector{Any},coordinates::Vector{Any},basis_set)
     Returns:
         Hartree Fock energy,mo coefficient matrix ,fock matrix,no of basisfunction
     """
-    exp,coeff,origin,shells,norms=orbital_config(Atoms,geom,basis_set)
+    
+    #exp,coeff,origin,shells,norms=orbital_config(Atoms,geom,basis_set)
+    exp,coeff,origin,shells,norms=basis_fig_out(Atoms,geom,basis_set)
     if Level_of_theory=="hf"
         @time S_matrix=S_mat(exp,coeff,origin,shells,norms)
         @time kinetic_energy=T_mat(exp,coeff,origin,shells,norms)
