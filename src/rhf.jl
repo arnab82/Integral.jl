@@ -125,6 +125,7 @@ function scf(s::Matrix{Float64},T_mat::Matrix{Float64},V_mat::Matrix{Float64},Er
     e,c0 = LinearAlgebra.eigen(init_fock)
     c = (make_s_half(s)*c0)
     list_e=[0.0,]
+    eps_list=[]
     fock= zeros(Float64,nbasis,nbasis)
     for n in 1:100
         if n==1
@@ -139,6 +140,7 @@ function scf(s::Matrix{Float64},T_mat::Matrix{Float64},V_mat::Matrix{Float64},Er
         f_dash=(make_s_half(s)*f_dash)
         f_dash=(f_dash+transpose(f_dash))/2
         eps,c_dash=LinearAlgebra.eigen(f_dash)
+        push!(eps_list,eps)
         c=(make_s_half(s)*c_dash)
         D=make_density(c,no)
         hf_energy=scf_energy(D,fock,h1e)
@@ -154,5 +156,5 @@ function scf(s::Matrix{Float64},T_mat::Matrix{Float64},V_mat::Matrix{Float64},Er
         Hartree_fock_energy=sum(hf_energy)+nuclear_repul
         println("iteration= ",n,"    energy= ", sum(hf_energy)+nuclear_repul,"         delta_e= ",round(del_e,digits=12))
     end
-    return Hartree_fock_energy,c,fock,nbasis
+    return Hartree_fock_energy,c,fock,nbasis,eps_list[lastindex(eps_list)]
 end

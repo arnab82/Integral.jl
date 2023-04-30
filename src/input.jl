@@ -1,6 +1,7 @@
 include(".//..//src//attributes.jl")
 include(".//..//src/Intgl.jl")
 include(".//../src//rhf.jl")
+include(".//../src//mp2.jl")
 include(".//..//src//basis_build.jl")
 
 #Take the first argument as the input file that contains information about the geometry 
@@ -56,9 +57,12 @@ function do_scf(Atoms::Vector{Any},coordinates::Vector{Any},basis_set)
         @time E_nuc=enuc(atomic_nos,geom)
         core_h=kinetic_energy+Potential_mat
         @time twoe,eri = Eri_mat(exp,coeff,origin,shells,norms)
-        @time Hartree_fock_energy,c,fock,nbasis=scf(S_matrix,kinetic_energy,Potential_mat,twoe,E_nuc,no_of_e)
+        @time Hartree_fock_energy,c,fock,nbasis,eps=scf(S_matrix,kinetic_energy,Potential_mat,twoe,E_nuc,no_of_e)
         println("final Hartree fock energy= ", Hartree_fock_energy)
     end
-    return Hartree_fock_energy,c,fock,nbasis
+    return Hartree_fock_energy,c,fock,nbasis,no_of_e,twoe,eps
 end
-Hartree_fock_energy,c,fock,nbasis=do_scf(Atoms,geom,basis_set)
+Hartree_fock_energy,c,fock,nbasis,no_of_e,eri,eps =do_scf(Atoms,geom,basis_set)
+@time mp2_energy=compute_mp2(c,eri,no_of_e,eps)
+print("MP2 correlation Energy = ",mp2_energy ,"\n")
+print("Total Energy = ",mp2_energy+Hartree_fock_energy,"\n")
