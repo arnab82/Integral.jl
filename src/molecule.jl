@@ -49,7 +49,7 @@ function normalize_basis!(bf::BasisFunction)
     l=convert(Int64,l)
     m=convert(Int64,m)
     n=convert(Int64,n)
-    println(l,m,n)
+    #println(l,m,n)
     L = l + m + n
     #println(L)
     #println(bf.exps)

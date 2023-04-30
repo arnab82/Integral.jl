@@ -73,15 +73,15 @@ function sym2num(sym)
         "Tl","Pb","Bi","Po","At","Rn"]
     return findfirst(x -> x == string(sym), symbol)
 end
-expon=[]
-coeffic=[]
-angu_mom=[]
-atoms=["O","H" ,"H"]
-geom=[[0.000000000000 , -0.143225816552  , 0.000000000000],[1.638036840407 ,  1.136548822547 , -0.000000000000],[-1.638036840407  , 1.136548822547  ,-0.000000000000]]
-basis_set="sto-3g"
-println(angu_mom)
-println(expon)
-println(coeffic)
+#expon=[]
+#coeffic=[]
+#angu_mom=[]
+#atoms=["O","H" ,"H"]
+#geom=[[0.000000000000 , -0.143225816552  , 0.000000000000],[1.638036840407 ,  1.136548822547 , -0.000000000000],[-1.638036840407  , 1.136548822547  ,-0.000000000000]]
+#basis_set="sto-3g"
+#println(angu_mom)
+#println(expon)
+#println(coeffic)
 function basis_fig_out(atoms, geom, basis_set)
     attributes = []
     expon=[]
@@ -119,8 +119,8 @@ function basis_fig_out(atoms, geom, basis_set)
 	for (j ,c) in enumerate(atoms)
         symbol_num=sym2num(c)
         symbol_num=string(symbol_num)
-        println(symbol_num)
-        println(typeof(symbol_num))
+        #println(symbol_num)
+        #println(typeof(symbol_num))
         for i in 1:lastindex(bs["elements"][symbol_num]["electron_shells"])
             exps = bs["elements"][symbol_num]["electron_shells"][i]["exponents"]
             coeff = bs["elements"][symbol_num]["electron_shells"][i]["coefficients"]
@@ -130,9 +130,9 @@ function basis_fig_out(atoms, geom, basis_set)
             push!(coeffic,coeff)
         end
     end
-	println(expon)
-    println(coeffic)
-    println(angu_mom)
+	#println(expon)
+    #println(coeffic)
+    #println(angu_mom)
     for k in 1:lastindex(angu_mom)
         if angu_mom[k][1]==[0]
             push!(attributes,[expon[k],coeffic[k][1],[0,0,0],angu_mom[k][2]])
@@ -154,9 +154,9 @@ function basis_fig_out(atoms, geom, basis_set)
         end
     end
     
-    display(attributes)
-    println(attributes)
-    println(typeof(attributes))
+    #display(attributes)
+    #println(attributes)
+    #println(typeof(attributes))
 	#println(attributes)
 	#println(size(attributes[2][1]))
 	orbital_objects = [] 
@@ -171,4 +171,4 @@ function basis_fig_out(atoms, geom, basis_set)
 	display(orbital_objects)
 	return sort_attri(orbital_objects)
 end
-@time a=basis_fig_out(atoms, geom, basis_set)
+#@time a=basis_fig_out(atoms, geom, basis_set)

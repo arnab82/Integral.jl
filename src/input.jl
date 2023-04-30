@@ -27,15 +27,15 @@ Atoms = []
 for line in geom_file
     push!(Atoms, line[1])
 end
-println(Atoms)
-println(typeof(Atoms))
+#println(Atoms)
+#println(typeof(Atoms))
 geom = []
 for line in geom_file
     push!(geom, [parse(Float64, x) for x in line[2:end]])
 end
-println(geom)
-println(typeof(geom))
-println(basis_set)
+#println(geom)
+#println(typeof(geom))
+#println(basis_set)
 function do_scf(Atoms::Vector{Any},coordinates::Vector{Any},basis_set)
     """
     A function  that does scf calculation
@@ -48,7 +48,7 @@ function do_scf(Atoms::Vector{Any},coordinates::Vector{Any},basis_set)
     """
     
     #exp,coeff,origin,shells,norms=orbital_config(Atoms,geom,basis_set)
-    exp,coeff,origin,shells,norms=basis_fig_out(Atoms,geom,basis_set)
+    @time exp,coeff,origin,shells,norms=basis_fig_out(Atoms,geom,basis_set)
     if Level_of_theory=="hf"
         @time S_matrix=S_mat(exp,coeff,origin,shells,norms)
         @time kinetic_energy=T_mat(exp,coeff,origin,shells,norms)

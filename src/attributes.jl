@@ -236,7 +236,7 @@ function orbital_config(atoms, geom, basis_set)
 			push!(orbital_objects, BasisFunction(attributes[i][j][4], attributes[i][j][3], attributes[i][j][1], attributes[i][j][2],size(attributes[i][j][1])[1],norms))
 		end
 	end
-	display(orbital_objects)
+	#display(orbital_objects)
 	return sort_attri(orbital_objects)
 end
 
