@@ -5,7 +5,7 @@ Currently only sto-3g,sto-6g, def2-svp, def2-tzvp, 6-31g, 6-31g(d,p), 6-31g*, 6-
 # Example of Input File
 h2o.inp
 
-hf sto-3g
+rhf sto-3g
 
 0 1
 
