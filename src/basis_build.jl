@@ -112,6 +112,9 @@ function basis_fig_out(atoms, geom, basis_set)
     elseif basis_set=="6-31g**"
         file_name= read("/home/arnabbachhar/Intgl/basis/6-31g_st__st.json",String)
         bs = JSON.parse(file_name)
+    elseif basis_set=="3-21g-uc"
+        file_name= read("/home/arnabbachhar/Intgl/basis/3-21g-uc.json",String)
+        bs = JSON.parse(file_name)
     else
         println("basis set not present")
     end

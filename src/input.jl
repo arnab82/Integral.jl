@@ -62,7 +62,7 @@ function do_scf(Atoms::Vector{Any},coordinates::Vector{Any},basis_set,multiplici
     if Level_of_theory=="rhf"
         @time Hartree_fock_energy,c,fock,nbasis,eps=scf(S_matrix,kinetic_energy,Potential_mat,twoe,E_nuc,no_of_e)
         println("final Hartree fock energy= ", Hartree_fock_energy)
-        @time mp2_energy=compute_mp2(c,eri,no_of_e,eps)
+        @time mp2_energy=compute_mp2(c,twoe,no_of_e,eps,nbasis)
         print("MP2 correlation Energy = ",mp2_energy ,"\n")
         print("Total Energy = ",mp2_energy+Hartree_fock_energy,"\n")
         return Hartree_fock_energy,c,fock,nbasis,no_of_e,twoe,eps

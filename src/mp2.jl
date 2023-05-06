@@ -2,7 +2,7 @@
 using TensorOperations
 using Einsum
 
-function compute_mp2(c::Matrix{Any},eri::Array{Float64, 4},no_of_e::Int64,eps)
+function compute_mp2(c::Matrix{Any},eri::Array{Float64, 4},no_of_e::Int64,eps,nbasis)
     new_eri=zeros(Float64,nbasis,nbasis,nbasis,nbasis)
     temp1=zeros(Float64,nbasis,nbasis,nbasis,nbasis)
     temp2=zeros(Float64,nbasis,nbasis,nbasis,nbasis)
