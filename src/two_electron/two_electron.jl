@@ -1,4 +1,3 @@
-#include("./../basis.jl")
 include(".//..//one_electron//overlap.jl")
 include(".//..//one_electron//one_electron_integral.jl")
 function compound_index(i::Int, j::Int, k::Int, l::Int)::Int
@@ -43,9 +42,8 @@ function electron_repulsion(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64
     Evaluates kinetic energy integral between two Gaussians.
     Returns a float.
     a,b,c,d:   orbital exponent on Gaussian 'a','b','c','d'
-    lmn1,lmn2,lmn3,lmn4: int tuple containing orbital angular momentum
-                   for Gaussian 'a','b','c','d', respectively
-    A,B,C,D:   list containing origin of Gaussian 'a','b','c','d'
+    lmn1,lmn2,lmn3,lmn4: vectors containing orbital angular momentum for Gaussian 'a','b','c','d', respectively
+    A,B,C,D: vector  containing origin of Gaussian 'a','b','c','d'
     """
     l1, m1, n1 = lmn1
     l2, m2, n2 = lmn2
@@ -72,13 +70,13 @@ function electron_repulsion(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64
                 for tau in 0:convert(Int64,(l3 + l4))
                     for nu in 0:convert(Int64,(m3 + m4))
                         for phi in 0:convert(Int64,(n3 + n4))
-                            val += E(l1, l2, t, A[1] - B[1], a, b) *
-                                E(m1, m2, u, A[2] - B[2], a, b) *
-                                E(n1, n2, v, A[3] - B[3], a, b) *
-                                E(l3, l4, tau, C[1] - D[1], c, d) *
-                                E(m3, m4, nu, C[2] - D[2], c, d) *
-                                E(n3, n4, phi, C[3] - D[3], c, d) *((-1)^(tau + nu + phi)) *
-                                R(t + tau, u + nu, v + phi, 0, alpha,PQ1,PQ2,PQ3, RPQ)
+                            val += Expansion_coeff(l1, l2, t, A[1] - B[1], a, b) *
+                                Expansion_coeff(m1, m2, u, A[2] - B[2], a, b) *
+                                Expansion_coeff(n1, n2, v, A[3] - B[3], a, b) *
+                                Expansion_coeff(l3, l4, tau, C[1] - D[1], c, d) *
+                                Expansion_coeff(m3, m4, nu, C[2] - D[2], c, d) *
+                                Expansion_coeff(n3, n4, phi, C[3] - D[3], c, d) *((-1)^(tau + nu + phi)) *
+                                R_aux_Hermite_coloumb(t + tau, u + nu, v + phi, 0, alpha,PQ1,PQ2,PQ3, RPQ)
                         end
                     end
                 end

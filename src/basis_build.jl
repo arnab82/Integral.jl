@@ -172,6 +172,6 @@ function basis_fig_out(atoms, geom, basis_set)
 	end
     println("*****************************************************************************************")
 	display(orbital_objects)
-	return sort_attri(orbital_objects)
+	return sort_attributes(orbital_objects)
 end
 #@time a=basis_fig_out(atoms, geom, basis_set)

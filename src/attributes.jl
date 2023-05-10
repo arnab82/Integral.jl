@@ -1,7 +1,6 @@
-
 include(".//Intgl.jl")
 include(".//molecule.jl")
-function Basis_attributes_finder(atom)
+function Basis_attributes_sto3g(atom)
 	basis_set_STO3G = Dict("H" =>  [[[3.425250914, 0.6239137298, 0.168855404], [0.1543289673, 0.5353281423, 0.4446345422], [0, 0, 0]]], 
 		"He" =>  [[[6.362421394, 1.158922999, 0.3136497915], [0.1543289673, 0.5353281423, 0.4446345422], (0, 0, 0)]],
 		"Li" => [[[16.11957475, 2.936200663, 0.794650487], [0.1543289673, 0.5353281423, 0.4446345422], (0, 0, 0)],
@@ -123,7 +122,7 @@ function Basis_attributes_finder(atom)
 
 	return attributes
 end
-function Basis_attributes_finder_DZP(atom)
+function Basis_attributes_DZP(atom)
 	basis_set_DZP =Dict(
 	"H"  =>  [[[19.2406,2.89920,0.65340],[0.032828,0.231208,0.817238],[0,0,0]],
 			[[0.17760],[1.000000],[0,0,0]],
@@ -157,7 +156,7 @@ end
 
 
 
-function Basis_attributes_finder_cc_pVDZ(atom)
+function Basis_attributes_cc_pVDZ(atom)
 	basis_set_VDZ = Dict(
 	"H"  => [[[1.301000E+01,1.962000E+00,4.446000E-01,1.220000E-01],[1.968500E-02,1.379770E-01,4.781480E-01,5.012400E-01],[0,0,0]],
 		  [[1.220000E-01],[1.0],[0,0,0]],
@@ -185,7 +184,7 @@ function Basis_attributes_finder_cc_pVDZ(atom)
 	return attributes
 end
 using LinearAlgebra
-function Basis_attributes_finder_321guc_H(atom)
+function Basis_attributes_321guc_H(atom)
 	basis_set_VDZ = Dict(
 	"H"  => [[[5.447178, 0.82454724],[0.1562849786947539, 0.904690876669632],[0,0,0]],
 		  [[0.18319158],[1.0],[0,0,0]]])
@@ -196,7 +195,7 @@ function Basis_attributes_finder_321guc_H(atom)
 	return attributes
 end
 
-function sort_attri(orbital_objects)
+function sort_attributes(orbital_objects)
     exps_ = []
     coefs_ = []
     origins = []
@@ -216,18 +215,18 @@ function sort_attri(orbital_objects)
 end
 
 
-function orbital_config(atoms, geom, basis_set)
+function orbital_configuration(atoms, geom, basis_set)
     attributes = []
 	#println(lastindex(atoms))
 	for i in 1:lastindex(atoms)
 		if basis_set == "sto3g"
-			temp_attri = Basis_attributes_finder(atoms[i])
+			temp_attri = Basis_attributes_sto3g(atoms[i])
 		elseif basis_set == "dzp"
-			temp_attri = Basis_attributes_finder_DZP(atoms[i])
+			temp_attri = Basis_attributes_DZP(atoms[i])
 		elseif basis_set == "cc-pvdz"
-			temp_attri = Basis_attributes_finder_cc_pVDZ(atoms[i])
+			temp_attri = Basis_attributes_cc_pVDZ(atoms[i])
 		elseif basis_set=="3-21g-uc"
-			temp_attri=Basis_attributes_finder_321guc_H(atoms[i])
+			temp_attri=Basis_attributes_321guc_H(atoms[i])
 		end
 
 		for j in 1:lastindex(temp_attri)
@@ -247,7 +246,7 @@ function orbital_config(atoms, geom, basis_set)
 		end
 	end
 	#display(orbital_objects)
-	return sort_attri(orbital_objects)
+	return sort_attributes(orbital_objects)
 end
 
 

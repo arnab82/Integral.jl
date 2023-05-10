@@ -13,15 +13,16 @@ fact2=sp.factorial2
 
 function kinetic(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64}, b::Float64, lmn2::Vector{Float64}, B::Vector{Float64})
     """
-    Evaluates kinetic energy integral between two Gaussians. Returns a float.
-    
-    a: orbital exponent on Gaussian 'a'
-    b: orbital exponent on Gaussian 'b' 
-    lmn1: int tuple containing orbital angular momentum (e.g. (1,0,0))
+    Evaluate kinetic energy integral between two Gaussians
+    Returns a float.
+    a:    orbital exponent on Gaussian 'a' 
+    b:    orbital exponent on Gaussian 'b' 
+    lmn1: vector containing orbital angular momentum (e.g. (1,0,0))
           for Gaussian 'a'
-    lmn2: int tuple containing orbital angular momentum for Gaussian 'b'
-    A: list containing origin of Gaussian 'a', e.g. [1.0, 2.0, 0.0]
-    B: list containing origin of Gaussian 'b'
+    lmn2: vector containing orbital angular momentum for Gaussian 'b'
+    A:    vector containing origin of Gaussian 'a', e.g. [1.0, 2.0, 0.0]
+    B:    vector containing origin of Gaussian 'b'
+    C:    vector containing origin of nuclear center 'C'
     """
     l1, m1, n1 = lmn1
     l2, m2, n2 = lmn2
@@ -46,8 +47,11 @@ function T(aexps::Vector{Float64}, acoefs::Vector{Float64}, ashell::Vector{Float
     Returns a float.
     
     Arguments:
-    a: contracted Gaussian 'a', BasisFunction object
-    b: contracted Gaussian 'b', BasisFunction object
+    aexps,bexps: exponenets of contracted Gaussian 'a'and 'b', BasisFunction object
+    acoefs,bcoefs: coefficients of contracted Gaussian 'a'and 'b', BasisFunction object
+    ashell,bshell: exponenets of contracted Gaussian 'a'and 'b', BasisFunction object
+    anorm,bnorm: norms of contracted Gaussian 'a'and 'b', BasisFunction object
+    aorigin,borigin: origins of contracted Gaussian 'a'and 'b', BasisFunction object
     """
     t = 0.0
     for (ia, ca) in enumerate(acoefs)
@@ -81,7 +85,7 @@ end
 
 
 
-function R(t, u, v, n, p, PCx, PCy, PCz, RPC)
+function R_aux_Hermite_coloumb(t, u, v, n, p, PCx, PCy, PCz, RPC)
     """
     Returns the Coulomb auxiliary Hermite integrals
     Returns a float.
@@ -98,23 +102,24 @@ function R(t, u, v, n, p, PCx, PCy, PCz, RPC)
         val += ((-2 * p)^n) * boys(n, T)
     elseif t == u == 0
         if v > 1
-            val += (v - 1) * R(t, u, v - 2, n + 1, p, PCx, PCy, PCz, RPC)
+            val += (v - 1) * R_aux_Hermite_coloumb(t, u, v - 2, n + 1, p, PCx, PCy, PCz, RPC)
         end
-        val += PCz * R(t, u, v - 1, n + 1, p, PCx, PCy, PCz, RPC)
+        val += PCz * R_aux_Hermite_coloumb(t, u, v - 1, n + 1, p, PCx, PCy, PCz, RPC)
     elseif t == 0
         if u > 1
-            val += (u - 1) * R(t, u - 2, v, n + 1, p, PCx, PCy, PCz, RPC)
+            val += (u - 1) * R_aux_Hermite_coloumb(t, u - 2, v, n + 1, p, PCx, PCy, PCz, RPC)
         end
-        val += PCy * R(t, u - 1, v, n + 1, p, PCx, PCy, PCz, RPC)
+        val += PCy * R_aux_Hermite_coloumb(t, u - 1, v, n + 1, p, PCx, PCy, PCz, RPC)
     else
         if t > 1
-            val += (t - 1) * R(t - 2, u, v, n + 1, p, PCx, PCy, PCz, RPC)
+            val += (t - 1) * R_aux_Hermite_coloumb(t - 2, u, v, n + 1, p, PCx, PCy, PCz, RPC)
         end
-        val += PCx * R(t - 1, u, v, n + 1, p, PCx, PCy, PCz, RPC)
+        val += PCx * R_aux_Hermite_coloumb(t - 1, u, v, n + 1, p, PCx, PCy, PCz, RPC)
     end
     return val
 end
 function boys(n, T)
+    "Boys Function"
     return hyp1f1(n + 0.5, n + 1.5, -T) / (2.0 * n + 1.0)
 end
 
@@ -128,16 +133,15 @@ end
 
 function nuclear_attraction(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64}, b::Float64, lmn2::Vector{Float64}, B::Vector{Float64}, C)
     """
-    Evaluates kinetic energy integral between two Gaussians
+    Evaluates nuclear attraction integral between two Gaussians
     Returns a float.
     a:    orbital exponent on Gaussian 'a' 
     b:    orbital exponent on Gaussian 'b' 
-    lmn1: int tuple containing orbital angular momentum (e.g. (1,0,0))
-          for Gaussian 'a'
-    lmn2: int tuple containing orbital angular momentum for Gaussian 'b'
-    A:    list containing origin of Gaussian 'a', e.g. [1.0, 2.0, 0.0]
-    B:    list containing origin of Gaussian 'b'
-    C:    list containing origin of nuclear center 'C'
+    lmn1: vector containing orbital angular momentum for Gaussian 'a'
+    lmn2: vector containing orbital angular momentum for Gaussian 'b'
+    A:    vector containing origin of Gaussian 'a'
+    B:    vector containing origin of Gaussian 'b'
+    C:    vector containing origin of nuclear center 'C'
     """
     l1, m1, n1 = lmn1 
     l2, m2, n2 = lmn2
@@ -152,10 +156,10 @@ function nuclear_attraction(a::Float64, lmn1::Vector{Float64}, A::Vector{Float64
     for t in 0:convert(Int64,(l1+l2))
         for u in 0:convert(Int64,(m1+m2))
             for v in 0:convert(Int64,(n1+n2))
-                val += E(l1, l2, t, A[1] - B[1], a, b) * 
-                       E(m1, m2, u, A[2] - B[2], a, b) * 
-                       E(n1, n2, v, A[3] - B[3], a, b) * 
-                       R(t, u, v, 0, p,  -RPCdash1, -RPCdash2, -RPCdash3, RPC)
+                val += Expansion_coeff(l1, l2, t, A[1] - B[1], a, b) * 
+                       Expansion_coeff(m1, m2, u, A[2] - B[2], a, b) * 
+                       Expansion_coeff(n1, n2, v, A[3] - B[3], a, b) * 
+                       R_aux_Hermite_coloumb(t, u, v, 0, p,  -RPCdash1, -RPCdash2, -RPCdash3, RPC)
             end
         end
     end

@@ -4,7 +4,7 @@ include(".//..//src/Intgl.jl")
 include(".//../src//rhf.jl")
 
 function do_scf(Atoms::Vector{String},coordinates::Vector{Vector{Float64}},basis_set::String)
-    exp,coeff,origin,shells,norms=orbital_config(Atoms,coordinates,basis_set)
+    exp,coeff,origin,shells,norms=orbital_configuration(Atoms,coordinates,basis_set)
 
     @time S_matrix=S_mat(exp,coeff,origin,shells,norms)
     @time kinetic_energy=T_mat(exp,coeff,origin,shells,norms)
@@ -23,7 +23,7 @@ function bond_distance(coords::Vector{Vector{Float64}}, atom1::Int64, atom2::Int
     r = sqrt(sum((coords[atom1] .- coords[atom2]).^2))
     return r
 end
-geom=[[0.0, 0.0, 0.000000000000],[0.745  , 0.0  ,0.000000000000]]
+geom=[[0.0, 0.0, 0.000000000000],[1.408 , 0.0  ,0.000000000000]]
 basis_set="sto3g"
 basis_set="3-21g-uc"
 atoms=["H","H"]
@@ -47,6 +47,7 @@ E_hartree,C,F,nbasis= do_scf(atoms,geom,basis_set)
 
 
 function hartree_fock_optimization(Atoms::Vector{String},bond_distance::Float64,basis_set::String)
+    bond_distance=bond_distance*1.889726124625
     coordinates=get_geometry(bond_distance,Atoms)
     println(coordinates)
     # Initialize variables
@@ -56,7 +57,7 @@ function hartree_fock_optimization(Atoms::Vector{String},bond_distance::Float64,
     coordinate_D_neg=get_geometry(bond_distance-δ,Atoms)
     # Perform Hartree-Fock calculation at starting distance R
     E_hartree,C,F,nbasis= do_scf(Atoms,coordinates,basis_set)
-    println(E)
+    println(E_hartree)
     E_δ_pos,C,F,nbasis= do_scf(Atoms,coordinate_D_Pos,basis_set)
     E_δ_neg,C,F,nbasis= do_scf(Atoms,coordinate_D_neg,basis_set)
     # Calculate the first and second derivatives of the energy
@@ -89,7 +90,7 @@ function hartree_fock_optimization(Atoms::Vector{String},bond_distance::Float64,
         end
         # Check if first derivative is small enough
         println("the value of dE_Dr is ",abs(dE_dr))
-        println("Bond distance: ", R, " a.u.")
+        println("Bond distance: ", R/1.889726124625, " angstrom.")
         if abs(dE_dr) < 1e-6
             converged = true
             break
@@ -101,8 +102,8 @@ function hartree_fock_optimization(Atoms::Vector{String},bond_distance::Float64,
     E_new,C,F,nbasis= do_scf(Atoms,coordinates,basis_set)
     return d2E_dr2,R,E_new
 end
-d2E_dr2,bond_length,E_hartree=hartree_fock_optimization(atoms,0.9,basis_set)
-println(d2E_dr2)
+#d2E_dr2,bond_length,E_hartree=hartree_fock_optimization(atoms,1.8,basis_set)
+#println(d2E_dr2)
 function harmonic_frequency(Atoms::Vector{String},bond_distance::Float64,basis_set::String, M1::Float64, M2::Float64)
     # Calculate the second derivative of the energy with respect to bond-distance
     d2E_dr2,bond_length,E_hartree=hartree_fock_optimization(Atoms,bond_distance,basis_set)
@@ -129,4 +130,4 @@ function harmonic_frequency(Atoms::Vector{String},bond_distance::Float64,basis_s
     println("Harmonic vibrational frequency: ", freq, " cm^-1")
     return k,freq
 end
-force_constant, frequency=harmonic_frequency(atoms,0.9,basis_set,1.008,1.008)
+force_constant, frequency=harmonic_frequency(atoms,0.82,basis_set,1.008,1.008)
