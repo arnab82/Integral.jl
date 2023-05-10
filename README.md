@@ -18,3 +18,6 @@ H -1.638036840407 1.136548822547 -0.00000000000
 For running the hartree-fock calculation clone the repo and change the root path of the basis set json files in the input.jl file,run (give proper path of the files) 
 
 julia input.jl h2o.inp 
+
+# Running H2 vibrational frequency 
+Run  H2_frequency.jl file , the basis set available for this sto-3g,cc-pVDZ,3-21g-uc ,DZP

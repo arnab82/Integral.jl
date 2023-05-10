@@ -25,6 +25,7 @@ function bond_distance(coords::Vector{Vector{Float64}}, atom1::Int64, atom2::Int
 end
 geom=[[0.0, 0.0, 0.000000000000],[0.745  , 0.0  ,0.000000000000]]
 basis_set="sto3g"
+basis_set="3-21g-uc"
 atoms=["H","H"]
 function get_geometry(r::Float64, Atoms::Vector{String})
     atom1=Atoms[1]

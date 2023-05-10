@@ -185,8 +185,16 @@ function Basis_attributes_finder_cc_pVDZ(atom)
 	return attributes
 end
 using LinearAlgebra
-
-
+function Basis_attributes_finder_321guc_H(atom)
+	basis_set_VDZ = Dict(
+	"H"  => [[[5.447178, 0.82454724],[0.1562849786947539, 0.904690876669632],[0,0,0]],
+		  [[0.18319158],[1.0],[0,0,0]]])
+ 	attributes = []                         
+	for i in 1:(lastindex(basis_set_VDZ[atom]))
+		push!(attributes,basis_set_VDZ[atom][i])
+    end
+	return attributes
+end
 
 function sort_attri(orbital_objects)
     exps_ = []
@@ -218,6 +226,8 @@ function orbital_config(atoms, geom, basis_set)
 			temp_attri = Basis_attributes_finder_DZP(atoms[i])
 		elseif basis_set == "cc-pvdz"
 			temp_attri = Basis_attributes_finder_cc_pVDZ(atoms[i])
+		elseif basis_set=="3-21g-uc"
+			temp_attri=Basis_attributes_finder_321guc_H(atoms[i])
 		end
 
 		for j in 1:lastindex(temp_attri)
